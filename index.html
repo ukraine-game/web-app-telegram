@@ -13,6 +13,7 @@
             --text-color: #ffffff;
             --accent: #38bdf8;
             --gold: #fbbf24;
+            --gray: #94a3b8;
         }
 
         body {
@@ -31,6 +32,7 @@
             padding: 12px 20px;
             display: flex; align-items: center; justify-content: space-between;
             background: rgba(22, 28, 44, 0.95); border-bottom: 1px solid #2d3748;
+            z-index: 10;
         }
         .user-info { display: flex; align-items: center; gap: 10px; }
         .avatar {
@@ -44,12 +46,21 @@
 
         /* Score Area */
         .score-section { text-align: center; padding: 20px 0; }
-        .score-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; }
+        .score-label { font-size: 12px; color: var(--gray); text-transform: uppercase; letter-spacing: 1.5px; }
         .score-main { 
             font-size: 44px; font-weight: 900; color: white;
             display: flex; align-items: center; justify-content: center; gap: 12px;
         }
-        .passive-info { font-size: 13px; color: var(--accent); margin-top: 4px; }
+        #p-income-text { 
+            display: none; /* Сховано за замовчуванням */
+            font-size: 13px; 
+            color: var(--accent); 
+            margin-top: 8px;
+            background: rgba(56, 189, 248, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+        }
 
         /* Content Area */
         .content { flex-grow: 1; overflow-y: auto; padding-bottom: 100px; }
@@ -58,13 +69,13 @@
         @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         /* Tap Mechanism */
-        .tap-box { display: flex; justify-content: center; align-items: center; height: 260px; margin: 20px 0; }
+        .tap-box { display: flex; justify-content: center; align-items: center; height: 260px; margin: 10px 0; }
         .tg-coin {
-            width: 220px; height: 220px; cursor: pointer;
+            width: 210px; height: 210px; cursor: pointer;
             transition: transform 0.05s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             filter: drop-shadow(0 0 35px rgba(36, 161, 222, 0.3));
         }
-        .tg-coin:active { transform: scale(0.9); }
+        .tg-coin:active { transform: scale(0.92); }
 
         /* Stats Bar */
         .stats-wrap { background: var(--card-bg); padding: 15px; border-radius: 20px; margin-bottom: 10px; border: 1px solid #2d3748; }
@@ -78,12 +89,21 @@
             margin-bottom: 12px; border: 1px solid #2d3748;
         }
         .card-info h4 { margin: 0; font-size: 16px; }
-        .card-info p { margin: 4px 0 0; font-size: 11px; color: #94a3b8; }
+        .card-info p { margin: 4px 0 0; font-size: 11px; color: var(--gray); }
         .btn-upgrade {
             background: var(--tg-blue); color: white; border: none;
             padding: 10px 14px; border-radius: 12px; font-weight: bold; min-width: 85px;
         }
         .btn-upgrade:disabled { background: #2d3748; color: #64748b; }
+
+        /* Referral Button */
+        .btn-ref {
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+            color: white; border: none; padding: 16px; border-radius: 16px;
+            font-weight: bold; width: 100%; margin-top: 15px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
 
         /* Nav Bar */
         .nav {
@@ -96,6 +116,7 @@
         .float-text {
             position: absolute; color: white; font-weight: 800; font-size: 28px;
             pointer-events: none; animation: popUp 0.8s ease-out forwards;
+            z-index: 100;
         }
         @keyframes popUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-120px); } }
     </style>
@@ -106,9 +127,9 @@
     <div class="header">
         <div class="user-info">
             <div id="u-avatar" class="avatar">?</div>
-            <div id="u-name" style="font-weight: 700;">Гість</div>
+            <div id="u-name-head" style="font-weight: 700;">Гість</div>
         </div>
-        <div style="background: #1e293b; padding: 5px 12px; border-radius: 12px; font-size: 14px;">
+        <div style="background: #1e293b; padding: 5px 12px; border-radius: 12px; font-size: 14px; font-weight: bold; color: var(--gold);">
             💰 <span id="h-bal">0</span>
         </div>
     </div>
@@ -116,12 +137,14 @@
     <div class="content">
         <div id="tab-main" class="tab-content active">
             <div class="score-section">
-                <div class="score-label">Ваш баланс</div>
+                <div class="score-label">Натапано телеграмів</div>
                 <div class="score-main">
                     <img src="https://telegram.org/img/t_logo.png" width="40">
                     <span id="m-bal">0</span>
                 </div>
-                <div class="passive-info" id="p-income-text">Авто-клікер: Вимкнено</div>
+                <div style="height: 30px; margin-top: 5px;">
+                    <div id="p-income-text"></div>
+                </div>
             </div>
 
             <div class="tap-box">
@@ -181,21 +204,28 @@
 
         <div id="tab-profile" class="tab-content">
             <h3 style="margin: 20px 0 15px;">Профіль гравця</h3>
-            <div class="card" style="flex-direction: column; align-items: flex-start;">
-                <div style="width:100%; display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #2d3748; padding-bottom:10px;">
-                    <span style="color:#94a3b8">Ім'я:</span>
+            <div class="card" style="flex-direction: column; align-items: flex-start; gap: 12px;">
+                <div style="width:100%; display:flex; justify-content:space-between; border-bottom:1px solid #2d3748; padding-bottom:10px;">
+                    <span style="color:var(--gray)">Нікнейм:</span>
                     <span id="p-name" style="font-weight:bold">-</span>
                 </div>
-                <div style="width:100%; display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #2d3748; padding-bottom:10px;">
-                    <span style="color:#94a3b8">Username:</span>
+                <div style="width:100%; display:flex; justify-content:space-between; border-bottom:1px solid #2d3748; padding-bottom:10px;">
+                    <span style="color:var(--gray)">Username:</span>
                     <span id="p-user" style="color:var(--tg-blue)">-</span>
                 </div>
                 <div style="width:100%; display:flex; justify-content:space-between;">
-                    <span style="color:#94a3b8">ID:</span>
+                    <span style="color:var(--gray)">Telegram ID:</span>
                     <span id="p-id" style="font-family:monospace">-</span>
                 </div>
             </div>
-            <button onclick="tg.close()" class="btn-upgrade" style="width:100%; padding:15px; background:#ef4444;">Зберегти та вийти</button>
+
+            <button class="btn-ref" onclick="copyRefLink()">
+                🔗 Реферальне посилання
+            </button>
+            <p style="font-size: 11px; color: var(--gray); text-align: center; margin-top: 12px; line-height: 1.4;">
+                Запрошуй друзів та отримуй бонуси!<br>
+                1-й: <b>+1000</b> | 2-й: <b>+3000</b> | 3-й: <b>+5000</b> TG
+            </p>
         </div>
     </div>
 
@@ -211,8 +241,10 @@
     tg.ready();
     tg.expand();
 
-    // Game Logic Constants
-    const AUTO_INTERVALS = [0, 5, 4, 3, 2, 1, 0.5]; // seconds per click
+    // Замініть на юзернейм вашого бота без @
+    const BOT_USERNAME = 'YourBotName_bot'; 
+
+    const AUTO_INTERVALS = [0, 5, 4, 3, 2, 1, 0.5];
     const AUTO_COSTS = [500, 1500, 5000, 15000, 50000, 150000];
 
     let state = {
@@ -227,22 +259,22 @@
     };
 
     function load() {
-        const data = localStorage.getItem('star_empire_save');
+        const data = localStorage.getItem('star_empire_save_v2');
         if (data) {
             state = {...state, ...JSON.parse(data)};
             const now = Date.now();
             const diff = Math.floor((now - state.lastTime) / 1000);
 
-            // 1. Offline Regen
-            state.energy = Math.min(state.maxEnergy, state.energy + (diff * state.regen));
+            // Offline Regen
+            state.energy = Math.min(state.maxEnergy, state.energy + (diff * (state.regen * 0.5)));
 
-            // 2. Offline Auto-Clicker
-            if (state.autoLvl > 0) {
+            // Offline Auto-Clicker
+            if (state.autoLvl > 0 && diff > 0) {
                 const interval = AUTO_INTERVALS[state.autoLvl];
                 const offlineClicks = Math.floor(diff / interval);
                 if (offlineClicks > 0) {
                     state.bal += offlineClicks;
-                    tg.showAlert(`Ваш авто-клікер натапав ${offlineClicks} TG, поки вас не було!`);
+                    tg.showAlert(`Поки вас не було, Авто-клікер заробив: ${offlineClicks} TG!`);
                 }
             }
             state.lastTime = now;
@@ -251,14 +283,15 @@
 
     function save() {
         state.lastTime = Date.now();
-        localStorage.setItem('star_empire_save', JSON.stringify(state));
+        localStorage.setItem('star_empire_save_v2', JSON.stringify(state));
     }
 
     function initUser() {
         const u = tg.initDataUnsafe?.user;
         if (u) {
-            document.getElementById('u-name').innerText = u.first_name;
-            document.getElementById('p-name').innerText = u.first_name + (u.last_name ? ' ' + u.last_name : '');
+            const fullName = u.first_name + (u.last_name ? ' ' + u.last_name : '');
+            document.getElementById('u-name-head').innerText = u.first_name;
+            document.getElementById('p-name').innerText = fullName;
             document.getElementById('p-user').innerText = u.username ? '@' + u.username : 'немає';
             document.getElementById('p-id').innerText = u.id;
             
@@ -276,11 +309,19 @@
         document.getElementById('e-val').innerText = `${Math.floor(state.energy)} / ${state.maxEnergy}`;
         document.getElementById('e-bar').style.width = (state.energy / state.maxEnergy * 100) + '%';
         
+        // Auto-Clicker Status Text
+        const incomeText = document.getElementById('p-income-text');
+        if (state.autoLvl > 0) {
+            incomeText.style.display = 'inline-block';
+            incomeText.innerText = `🤖 Авто-клікер: 1 тап — ${AUTO_INTERVALS[state.autoLvl]} сек`;
+        } else {
+            incomeText.style.display = 'none';
+        }
+
         // Upgrades UI
         document.getElementById('lv-auto').innerText = state.autoLvl >= 6 ? 'MAX' : state.autoLvl;
         document.getElementById('cost-auto').innerText = state.autoLvl >= 6 ? '∞' : AUTO_COSTS[state.autoLvl];
         document.getElementById('auto-desc').innerText = state.autoLvl === 0 ? 'Швидкість: Вимкнено' : `1 клік кожні ${AUTO_INTERVALS[state.autoLvl]}с`;
-        document.getElementById('p-income-text').innerText = state.autoLvl === 0 ? 'Авто-клікер: Вимкнено' : `Авто-прибуток: +${(1/AUTO_INTERVALS[state.autoLvl]).toFixed(1)} TG/сек`;
         
         document.getElementById('cost-tap').innerText = state.costs.tap;
         document.getElementById('cost-energy').innerText = state.costs.energy;
@@ -288,6 +329,27 @@
         document.getElementById('lv-regen').innerText = state.regen;
 
         save();
+    }
+
+    function copyRefLink() {
+        const u = tg.initDataUnsafe?.user;
+        if (!u) return tg.showAlert("Помилка: дані Telegram недоступні");
+        
+        const link = `https://t.me/${BOT_USERNAME}?start=${u.id}`;
+        
+        // Спроба копіювання
+        const el = document.createElement('textarea');
+        el.value = link;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+
+        tg.showPopup({
+            title: 'Посилання скопійовано!',
+            message: 'Відправ його другу. Коли він зайде в гру, ти отримаєш бонус!',
+            buttons: [{type: 'ok'}]
+        });
     }
 
     document.getElementById('tap-coin').addEventListener('touchstart', (e) => {
@@ -305,7 +367,7 @@
             document.body.appendChild(p);
             setTimeout(() => p.remove(), 800);
             
-            tg.HapticFeedback.impactOccurred('light');
+            tg.HapticFeedback.impactOccurred('medium');
             updateUI();
         }
     });
@@ -316,6 +378,7 @@
             if (state.bal >= cost) {
                 state.bal -= cost;
                 state.autoLvl++;
+                tg.HapticFeedback.notificationOccurred('success');
             }
         } else if (type === 'tap' && state.bal >= state.costs.tap) {
             state.bal -= state.costs.tap;
@@ -325,11 +388,11 @@
             state.bal -= state.costs.energy;
             state.maxEnergy += 100;
             state.energy += 100;
-            state.costs.energy = Math.floor(state.costs.energy * 1.5);
+            state.costs.energy = Math.floor(state.costs.energy * 1.6);
         } else if (type === 'regen' && state.bal >= state.costs.regen) {
             state.bal -= state.costs.regen;
             state.regen++;
-            state.costs.regen = Math.floor(state.costs.regen * 2.2);
+            state.costs.regen = Math.floor(state.costs.regen * 2);
         }
         updateUI();
     }
@@ -341,13 +404,15 @@
         el.classList.add('active');
     }
 
-    // Auto-click loop (Online)
+    // Main Game Loop (10 FPS)
     setInterval(() => {
+        // Passive Income
         if (state.autoLvl > 0) {
-            state.bal += (1 / AUTO_INTERVALS[state.autoLvl]);
+            state.bal += (1 / (AUTO_INTERVALS[state.autoLvl] * 10));
         }
+        // Energy Regen
         if (state.energy < state.maxEnergy) {
-            state.energy = Math.min(state.maxEnergy, state.energy + (state.regen / 10));
+            state.energy = Math.min(state.maxEnergy, state.energy + (state.regen / 20));
         }
         updateUI();
     }, 100);
