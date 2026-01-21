@@ -2,36 +2,388 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Telegram Web App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Star Clicker</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
-            font-family: sans-serif;
-            text-align: center;
-            background-color: var(--tg-theme-bg-color);
-            color: var(--tg-theme-text-color);
-            padding: 20px;
+        :root {
+            --main-color: #fcc419;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #ffffff;
+            --accent-color: #38bdf8;
         }
-        button {
-            padding: 10px 20px;
-            background-color: var(--tg-theme-button-color);
-            color: var(--tg-theme-button-text-color);
-            border: none;
-            border-radius: 5px;
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            justify-content: space-between;
+        }
+
+        /* Header */
+        .header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--main-color);
+            background: #444;
+        }
+
+        .user-info h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        /* Stats */
+        .balance-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .balance {
+            font-size: 42px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .star-icon {
+            width: 40px;
+            height: 40px;
+            filter: drop-shadow(0 0 10px var(--main-color));
+        }
+
+        /* Main Tap Area */
+        .tap-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .main-star {
+            width: 200px;
+            height: 200px;
             cursor: pointer;
+            transition: transform 0.1s;
+            filter: drop-shadow(0 0 20px rgba(252, 196, 25, 0.4));
+        }
+
+        .main-star:active {
+            transform: scale(0.95);
+        }
+
+        /* Floating text animation */
+        .float-text {
+            position: absolute;
+            color: var(--main-color);
+            font-weight: bold;
+            font-size: 24px;
+            pointer-events: none;
+            animation: floatUp 0.8s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-100px); }
+        }
+
+        /* Energy Bar */
+        .energy-container {
+            width: 80%;
+            margin-bottom: 20px;
+        }
+
+        .energy-text {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .progress-bg {
+            height: 12px;
+            background: #334155;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #fcc419, #f59e0b);
+            width: 100%;
+            transition: width 0.2s;
+        }
+
+        /* Navigation */
+        .nav-bar {
+            display: flex;
+            background: var(--card-bg);
+            padding: 10px 0;
+            border-top: 1px solid #334155;
+        }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            font-size: 12px;
+            opacity: 0.6;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            opacity: 1;
+            color: var(--main-color);
+        }
+
+        /* Tabs content */
+        .tab-content {
+            display: none;
+            padding: 20px;
+            height: 60vh;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .upgrade-card {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .upgrade-info h4 { margin: 0; }
+        .upgrade-info p { margin: 5px 0 0; font-size: 12px; color: #94a3b8; }
+
+        .buy-btn {
+            background: var(--main-color);
+            color: black;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .buy-btn:disabled {
+            background: #4b5563;
+            color: #9ca3af;
         }
     </style>
 </head>
 <body>
-    <h1>Вітаємо у Web App!</h1>
-    <p>Це інтерфейс вашого застосунку всередині Telegram.</p>
-    <button onclick="window.Telegram.WebApp.close()">Закрити додаток</button>
 
-    <script>
-        // Ініціалізація Web App
-        const tg = window.Telegram.WebApp;
-        tg.expand(); // Розгортає вікно на весь екран
-    </script>
+<div class="container">
+    <div class="header">
+        <img id="user-photo" class="avatar" src="https://via.placeholder.com/50" alt="Avatar">
+        <div class="user-info">
+            <h3 id="user-name">Завантаження...</h3>
+            <span style="font-size: 12px; color: var(--accent-color);">Premium Member</span>
+        </div>
+    </div>
+
+    <div id="tab-main" class="tab-content active">
+        <div class="balance-container">
+            <div class="balance">
+                <img src="https://telegram.org/img/t_logo.png" class="star-icon" alt="star">
+                <span id="score">0</span>
+            </div>
+        </div>
+
+        <div class="tap-area">
+            <img src="https://telegram.org/img/t_logo.png" id="star-target" class="main-star" alt="Tap Star">
+        </div>
+
+        <div class="energy-container" style="margin: 0 auto 30px;">
+            <div class="energy-text">
+                <span>⚡ Енергія</span>
+                <span id="energy-val">200 / 200</span>
+            </div>
+            <div class="progress-bg">
+                <div id="energy-fill" class="progress-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-upgrades" class="tab-content">
+        <h2>Покращення</h2>
+        <div class="upgrade-card">
+            <div class="upgrade-info">
+                <h4>Multi-Tap</h4>
+                <p>+1 зірка за клік</p>
+                <p>Ціна: <span id="mt-cost">100</span> ⭐</p>
+            </div>
+            <button class="buy-btn" onclick="buyUpgrade('multitap')">Купити</button>
+        </div>
+
+        <div class="upgrade-card">
+            <div class="upgrade-info">
+                <h4>Енерго-Бак</h4>
+                <p>+100 до макс. енергії</p>
+                <p>Ціна: <span id="eb-cost">150</span> ⭐</p>
+            </div>
+            <button class="buy-btn" onclick="buyUpgrade('energy')">Купити</button>
+        </div>
+
+        <div class="upgrade-card">
+            <div class="upgrade-info">
+                <h4>Авто-Майнер</h4>
+                <p>+1 зірка/сек пасивно</p>
+                <p>Ціна: <span id="am-cost">500</span> ⭐</p>
+            </div>
+            <button class="buy-btn" onclick="buyUpgrade('miner')">Купити</button>
+        </div>
+    </div>
+
+    <div id="tab-profile" class="tab-content">
+        <h2>Мій Профіль</h2>
+        <div class="upgrade-card" style="flex-direction: column; align-items: flex-start;">
+            <p><strong>ID:</strong> <span id="u-id">-</span></p>
+            <p><strong>Нік:</strong> <span id="u-first">-</span></p>
+            <p><strong>Username:</strong> <span id="u-user">-</span></p>
+            <p><strong>Мова:</strong> <span id="u-lang">-</span></p>
+        </div>
+        <button class="buy-btn" style="width: 100%;" onclick="tg.close()">Закрити додаток</button>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="showTab('main', this)">🏠 Головна</div>
+        <div class="nav-item" onclick="showTab('upgrades', this)">🚀 Покращення</div>
+        <div class="nav-item" onclick="showTab('profile', this)">👤 Профіль</div>
+    </div>
+</div>
+
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    // Game State
+    let score = 0;
+    let energy = 200;
+    let maxEnergy = 200;
+    let tapValue = 1;
+    let passiveIncome = 0;
+
+    let costs = { multitap: 100, energy: 150, miner: 500 };
+
+    // Initialize User Data
+    const user = tg.initDataUnsafe?.user;
+    if (user) {
+        document.getElementById('user-name').innerText = user.first_name;
+        document.getElementById('u-id').innerText = user.id;
+        document.getElementById('u-first').innerText = user.first_name;
+        document.getElementById('u-user').innerText = user.username || 'немає';
+        document.getElementById('u-lang').innerText = user.language_code;
+        if (user.photo_url) {
+            document.getElementById('user-photo').src = user.photo_url;
+        }
+    }
+
+    // Tapping Logic
+    const starBtn = document.getElementById('star-target');
+    starBtn.addEventListener('click', (e) => {
+        if (energy >= tapValue) {
+            score += tapValue;
+            energy -= tapValue;
+            updateUI();
+            createFloatText(e.clientX, e.clientY, `+${tapValue}`);
+            tg.HapticFeedback.impactOccurred('medium');
+        } else {
+            tg.HapticFeedback.notificationOccurred('error');
+        }
+    });
+
+    function createFloatText(x, y, text) {
+        const el = document.createElement('div');
+        el.className = 'float-text';
+        el.innerText = text;
+        el.style.left = `${x - 10}px`;
+        el.style.top = `${y - 20}px`;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 800);
+    }
+
+    function updateUI() {
+        document.getElementById('score').innerText = Math.floor(score);
+        document.getElementById('energy-val').innerText = `${energy} / ${maxEnergy}`;
+        document.getElementById('energy-fill').style.width = `${(energy / maxEnergy) * 100}%`;
+        
+        // Disable buttons if not enough stars
+        document.querySelectorAll('.buy-btn').forEach(btn => {
+            // Check prices and disable
+        });
+    }
+
+    // Navigation
+    function showTab(tabId, el) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById(`tab-${tabId}`).classList.add('active');
+        el.classList.add('active');
+    }
+
+    // Upgrades
+    function buyUpgrade(type) {
+        if (type === 'multitap' && score >= costs.multitap) {
+            score -= costs.multitap;
+            tapValue++;
+            costs.multitap = Math.floor(costs.multitap * 1.5);
+            document.getElementById('mt-cost').innerText = costs.multitap;
+        } else if (type === 'energy' && score >= costs.energy) {
+            score -= costs.energy;
+            maxEnergy += 100;
+            energy += 100;
+            costs.energy = Math.floor(costs.energy * 1.6);
+            document.getElementById('eb-cost').innerText = costs.energy;
+        } else if (type === 'miner' && score >= costs.miner) {
+            score -= costs.miner;
+            passiveIncome += 1;
+            costs.miner = Math.floor(costs.miner * 1.8);
+            document.getElementById('am-cost').innerText = costs.miner;
+        }
+        updateUI();
+    }
+
+    // Energy regeneration & Passive Income
+    setInterval(() => {
+        if (energy < maxEnergy) {
+            energy = Math.min(maxEnergy, energy + 1);
+        }
+        if (passiveIncome > 0) {
+            score += passiveIncome / 10;
+        }
+        updateUI();
+    }, 1000);
+
+</script>
 </body>
 </html>
