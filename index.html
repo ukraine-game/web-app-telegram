@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>TG Star Clicker Pro</title>
+    <title>TG Star Empire</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
             --tg-blue: #24A1DE;
-            --bg-color: #070b14;
-            --card-bg: #151e2d;
+            --bg-color: #0b0f19;
+            --card-bg: #161c2c;
             --text-color: #ffffff;
-            --gray: #94a3b8;
+            --accent: #38bdf8;
+            --gold: #fbbf24;
         }
 
         body {
             margin: 0; padding: 0;
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             overflow: hidden;
@@ -27,80 +28,76 @@
 
         /* Header */
         .header {
-            padding: 15px 20px;
+            padding: 12px 20px;
             display: flex; align-items: center; justify-content: space-between;
-            background: #111827; border-bottom: 2px solid #1e293b;
+            background: rgba(22, 28, 44, 0.95); border-bottom: 1px solid #2d3748;
         }
-
         .user-info { display: flex; align-items: center; gap: 10px; }
         .avatar {
-            width: 40px; height: 40px; border-radius: 50%;
-            background: linear-gradient(45deg, var(--tg-blue), #38bdf8);
+            width: 38px; height: 38px; border-radius: 50%;
+            background: linear-gradient(45deg, var(--tg-blue), #60a5fa);
             display: flex; align-items: center; justify-content: center;
-            font-weight: bold; border: 2px solid #334155;
+            font-weight: bold; font-size: 16px; border: 2px solid #3b82f6;
+            overflow: hidden;
         }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Main Game Area */
-        .content { flex-grow: 1; position: relative; overflow-y: auto; padding-bottom: 90px; }
-        .tab-content { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
+        /* Score Area */
+        .score-section { text-align: center; padding: 20px 0; }
+        .score-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; }
+        .score-main { 
+            font-size: 44px; font-weight: 900; color: white;
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+        }
+        .passive-info { font-size: 13px; color: var(--accent); margin-top: 4px; }
+
+        /* Content Area */
+        .content { flex-grow: 1; overflow-y: auto; padding-bottom: 100px; }
+        .tab-content { display: none; padding: 0 20px; animation: slideUp 0.3s ease; }
         .tab-content.active { display: block; }
+        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Score Display */
-        .score-container { text-align: center; margin-top: 20px; }
-        .score-title { font-size: 14px; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
-        .score-value { 
-            font-size: 48px; font-weight: 800; display: flex; 
-            align-items: center; justify-content: center; gap: 10px; margin: 5px 0;
+        /* Tap Mechanism */
+        .tap-box { display: flex; justify-content: center; align-items: center; height: 260px; margin: 20px 0; }
+        .tg-coin {
+            width: 220px; height: 220px; cursor: pointer;
+            transition: transform 0.05s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(0 0 35px rgba(36, 161, 222, 0.3));
         }
+        .tg-coin:active { transform: scale(0.9); }
 
-        /* Tap Logic */
-        .tap-area { display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 30px 0; }
-        .tg-button {
-            width: 240px; height: 240px; cursor: pointer;
-            transition: transform 0.05s;
-            filter: drop-shadow(0 0 40px rgba(36, 161, 222, 0.4));
-        }
-        .tg-button:active { transform: scale(0.92); }
+        /* Stats Bar */
+        .stats-wrap { background: var(--card-bg); padding: 15px; border-radius: 20px; margin-bottom: 10px; border: 1px solid #2d3748; }
+        .progress-container { height: 12px; background: #1e293b; border-radius: 10px; overflow: hidden; margin-top: 8px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa); width: 100%; transition: width 0.3s; }
 
-        /* Energy Bar */
-        .stats-box { width: 85%; margin: 0 auto; }
-        .energy-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; }
-        .progress-container { height: 16px; background: #1e293b; border-radius: 20px; border: 2px solid #334155; overflow: hidden; }
-        .progress-bar { height: 100%; background: linear-gradient(90deg, #24A1DE, #60a5fa); width: 100%; transition: width 0.2s; }
-
-        /* Cards & Lists */
-        .upgrade-item {
-            background: var(--card-bg); padding: 16px; border-radius: 16px;
+        /* Upgrade Cards */
+        .card {
+            background: var(--card-bg); padding: 16px; border-radius: 18px;
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 12px; border: 1px solid #1e293b;
+            margin-bottom: 12px; border: 1px solid #2d3748;
         }
-        .btn-action {
+        .card-info h4 { margin: 0; font-size: 16px; }
+        .card-info p { margin: 4px 0 0; font-size: 11px; color: #94a3b8; }
+        .btn-upgrade {
             background: var(--tg-blue); color: white; border: none;
-            padding: 10px 18px; border-radius: 12px; font-weight: bold;
+            padding: 10px 14px; border-radius: 12px; font-weight: bold; min-width: 85px;
         }
-        .btn-action:disabled { background: #334155; color: #64748b; }
+        .btn-upgrade:disabled { background: #2d3748; color: #64748b; }
 
-        /* Profile Details */
-        .profile-card { background: var(--card-bg); border-radius: 20px; padding: 20px; border: 1px solid #1e293b; }
-        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #1e293b; }
-        .info-row:last-child { border: none; }
-        .info-label { color: var(--gray); }
-
-        /* Navbar */
+        /* Nav Bar */
         .nav {
             position: fixed; bottom: 0; width: 100%; display: flex;
-            background: #111827; padding: 12px 0 30px; border-top: 1px solid #1e293b;
+            background: #111827; padding: 10px 0 25px; border-top: 1px solid #1e293b;
         }
-        .nav-item { flex: 1; text-align: center; color: var(--gray); font-size: 12px; font-weight: 500; }
-        .nav-item.active { color: var(--tg-blue); }
+        .nav-item { flex: 1; text-align: center; font-size: 12px; color: #64748b; }
+        .nav-item.active { color: var(--tg-blue); font-weight: bold; }
 
-        .float-n {
-            position: absolute; color: var(--tg-blue); font-size: 32px; font-weight: 900;
-            pointer-events: none; animation: floatUp 0.8s ease-out forwards;
+        .float-text {
+            position: absolute; color: white; font-weight: 800; font-size: 28px;
+            pointer-events: none; animation: popUp 0.8s ease-out forwards;
         }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
+        @keyframes popUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-120px); } }
     </style>
 </head>
 <body>
@@ -109,82 +106,101 @@
     <div class="header">
         <div class="user-info">
             <div id="u-avatar" class="avatar">?</div>
-            <div id="u-name" style="font-weight: bold;">Завантаження...</div>
+            <div id="u-name" style="font-weight: 700;">Гість</div>
         </div>
-        <div style="font-size: 14px; background: #1e293b; padding: 4px 12px; border-radius: 15px;">
-            💎 <span id="h-balance">0</span>
+        <div style="background: #1e293b; padding: 5px 12px; border-radius: 12px; font-size: 14px;">
+            💰 <span id="h-bal">0</span>
         </div>
     </div>
 
     <div class="content">
         <div id="tab-main" class="tab-content active">
-            <div class="score-container">
-                <div class="score-title">Натапано телеграмів</div>
-                <div class="score-value">
-                    <img src="https://telegram.org/img/t_logo.png" style="width: 40px;">
-                    <span id="main-balance">0</span>
+            <div class="score-section">
+                <div class="score-label">Ваш баланс</div>
+                <div class="score-main">
+                    <img src="https://telegram.org/img/t_logo.png" width="40">
+                    <span id="m-bal">0</span>
                 </div>
+                <div class="passive-info" id="p-income-text">Авто-клікер: Вимкнено</div>
             </div>
 
-            <div class="tap-area">
-                <img src="https://telegram.org/img/t_logo.png" id="tap-btn" class="tg-button">
+            <div class="tap-box">
+                <img src="https://telegram.org/img/t_logo.png" id="tap-coin" class="tg-coin">
             </div>
 
-            <div class="stats-box">
-                <div class="energy-label">
+            <div class="stats-wrap">
+                <div style="display: flex; justify-content: space-between; font-size: 14px;">
                     <span>⚡ Енергія</span>
-                    <span id="energy-val">200 / 200</span>
+                    <span id="e-val">200 / 200</span>
                 </div>
                 <div class="progress-container">
-                    <div id="energy-bar" class="progress-bar"></div>
+                    <div id="e-bar" class="progress-fill"></div>
                 </div>
             </div>
         </div>
 
         <div id="tab-upgrades" class="tab-content">
-            <h2 style="margin-bottom: 20px;">Магазин покращень</h2>
-            <div class="upgrade-item">
-                <div>
-                    <div style="font-weight: bold;">Multi-Tap</div>
-                    <div style="font-size: 12px; color: var(--gray);">+1 до сили кліку</div>
+            <h3 style="margin: 20px 0 15px;">Покращення</h3>
+            
+            <div class="card">
+                <div class="card-info">
+                    <h4>Auto-Clicker 🤖</h4>
+                    <p id="auto-desc">Швидкість: 0 кліків</p>
+                    <p>Ціна: <span id="cost-auto">500</span> TG</p>
                 </div>
-                <button class="btn-action" onclick="buyUpgrade('tap')"><span id="cost-tap">100</span> TG</button>
+                <button class="btn-upgrade" onclick="buy('auto')">Level <span id="lv-auto">0</span></button>
             </div>
-            <div class="upgrade-item">
-                <div>
-                    <div style="font-weight: bold;">Енерго-пак</div>
-                    <div style="font-size: 12px; color: var(--gray);">+100 до ліміту</div>
+
+            <div class="card">
+                <div class="card-info">
+                    <h4>Сила тапу 💪</h4>
+                    <p>+1 до кожного кліку</p>
+                    <p>Ціна: <span id="cost-tap">100</span> TG</p>
                 </div>
-                <button class="btn-action" onclick="buyUpgrade('energy')"><span id="cost-energy">150</span> TG</button>
+                <button class="btn-upgrade" onclick="buy('tap')">Купити</button>
+            </div>
+
+            <div class="card">
+                <div class="card-info">
+                    <h4>Енерго-буст 🔋</h4>
+                    <p>+100 макс. енергії</p>
+                    <p>Ціна: <span id="cost-energy">200</span> TG</p>
+                </div>
+                <button class="btn-upgrade" onclick="buy('energy')">Купити</button>
+            </div>
+
+            <div class="card">
+                <div class="card-info">
+                    <h4>Регенерація ⚡</h4>
+                    <p>Швидше відновлення енергії</p>
+                    <p>Ціна: <span id="cost-regen">300</span> TG</p>
+                </div>
+                <button class="btn-upgrade" onclick="buy('regen')">Lvl <span id="lv-regen">1</span></button>
             </div>
         </div>
 
         <div id="tab-profile" class="tab-content">
-            <h2 style="margin-bottom: 20px;">Мій профіль</h2>
-            <div class="profile-card">
-                <div class="info-row">
-                    <span class="info-label">Нікнейм:</span>
-                    <span id="p-full-name" style="font-weight: bold;">-</span>
+            <h3 style="margin: 20px 0 15px;">Профіль гравця</h3>
+            <div class="card" style="flex-direction: column; align-items: flex-start;">
+                <div style="width:100%; display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #2d3748; padding-bottom:10px;">
+                    <span style="color:#94a3b8">Ім'я:</span>
+                    <span id="p-name" style="font-weight:bold">-</span>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">ID користувача:</span>
-                    <span id="p-id" style="font-family: monospace;">-</span>
+                <div style="width:100%; display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #2d3748; padding-bottom:10px;">
+                    <span style="color:#94a3b8">Username:</span>
+                    <span id="p-user" style="color:var(--tg-blue)">-</span>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Мова додатку:</span>
-                    <span id="p-lang">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Преміум:</span>
-                    <span id="p-premium">Ні</span>
+                <div style="width:100%; display:flex; justify-content:space-between;">
+                    <span style="color:#94a3b8">ID:</span>
+                    <span id="p-id" style="font-family:monospace">-</span>
                 </div>
             </div>
-            <button onclick="tg.close()" class="btn-action" style="width: 100%; margin-top: 20px; background: #ef4444;">Вийти з гри</button>
+            <button onclick="tg.close()" class="btn-upgrade" style="width:100%; padding:15px; background:#ef4444;">Зберегти та вийти</button>
         </div>
     </div>
 
     <div class="nav">
-        <div class="nav-item active" onclick="showTab('main', this)">🏠 Головна</div>
+        <div class="nav-item active" onclick="showTab('main', this)">🏠 Основна</div>
         <div class="nav-item" onclick="showTab('upgrades', this)">🚀 Покращення</div>
         <div class="nav-item" onclick="showTab('profile', this)">👤 Профіль</div>
     </div>
@@ -192,127 +208,151 @@
 
 <script>
     const tg = window.Telegram.WebApp;
+    tg.ready();
     tg.expand();
 
-    // Game Constants
-    const ENERGY_REGEN_PER_SEC = 1;
+    // Game Logic Constants
+    const AUTO_INTERVALS = [0, 5, 4, 3, 2, 1, 0.5]; // seconds per click
+    const AUTO_COSTS = [500, 1500, 5000, 15000, 50000, 150000];
 
-    // State
     let state = {
-        balance: 0,
+        bal: 0,
         energy: 200,
         maxEnergy: 200,
         power: 1,
+        regen: 1,
+        autoLvl: 0,
         lastTime: Date.now(),
-        costs: { tap: 100, energy: 150 }
+        costs: { tap: 100, energy: 200, regen: 300 }
     };
 
-    // 1. Load Data
-    function loadData() {
-        const saved = localStorage.getItem('tg_clicker_state');
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            state = {...state, ...parsed};
-            
-            // Offline Energy Recovery Logic
+    function load() {
+        const data = localStorage.getItem('star_empire_save');
+        if (data) {
+            state = {...state, ...JSON.parse(data)};
             const now = Date.now();
-            const elapsedSecs = Math.floor((now - state.lastTime) / 1000);
-            const recovered = elapsedSecs * ENERGY_REGEN_PER_SEC;
-            
-            state.energy = Math.min(state.maxEnergy, state.energy + recovered);
+            const diff = Math.floor((now - state.lastTime) / 1000);
+
+            // 1. Offline Regen
+            state.energy = Math.min(state.maxEnergy, state.energy + (diff * state.regen));
+
+            // 2. Offline Auto-Clicker
+            if (state.autoLvl > 0) {
+                const interval = AUTO_INTERVALS[state.autoLvl];
+                const offlineClicks = Math.floor(diff / interval);
+                if (offlineClicks > 0) {
+                    state.bal += offlineClicks;
+                    tg.showAlert(`Ваш авто-клікер натапав ${offlineClicks} TG, поки вас не було!`);
+                }
+            }
             state.lastTime = now;
         }
     }
 
-    // 2. Save Data
-    function saveData() {
+    function save() {
         state.lastTime = Date.now();
-        localStorage.setItem('tg_clicker_state', JSON.stringify(state));
+        localStorage.setItem('star_empire_save', JSON.stringify(state));
     }
 
-    // Initialize User
     function initUser() {
-        const user = tg.initDataUnsafe?.user;
-        if (user) {
-            const name = user.first_name + (user.last_name ? ' ' + user.last_name : '');
-            document.getElementById('u-name').innerText = user.first_name;
-            document.getElementById('p-full-name').innerText = name;
-            document.getElementById('p-id').innerText = user.id;
-            document.getElementById('p-lang').innerText = user.language_code.toUpperCase();
-            document.getElementById('p-premium').innerText = user.is_premium ? "Так ✨" : "Ні";
+        const u = tg.initDataUnsafe?.user;
+        if (u) {
+            document.getElementById('u-name').innerText = u.first_name;
+            document.getElementById('p-name').innerText = u.first_name + (u.last_name ? ' ' + u.last_name : '');
+            document.getElementById('p-user').innerText = u.username ? '@' + u.username : 'немає';
+            document.getElementById('p-id').innerText = u.id;
             
-            if (user.photo_url) {
-                document.getElementById('u-avatar').innerHTML = `<img src="${user.photo_url}" style="width:100%;height:100%;border-radius:50%">`;
+            if (u.photo_url) {
+                document.getElementById('u-avatar').innerHTML = `<img src="${u.photo_url}">`;
             } else {
-                document.getElementById('u-avatar').innerText = user.first_name[0];
+                document.getElementById('u-avatar').innerText = u.first_name[0].toUpperCase();
             }
         }
     }
 
-    // UI Updates
     function updateUI() {
-        document.getElementById('main-balance').innerText = Math.floor(state.balance);
-        document.getElementById('h-balance').innerText = Math.floor(state.balance);
-        document.getElementById('energy-val').innerText = `${Math.floor(state.energy)} / ${state.maxEnergy}`;
-        document.getElementById('energy-bar').style.width = (state.energy / state.maxEnergy * 100) + '%';
+        document.getElementById('h-bal').innerText = Math.floor(state.bal);
+        document.getElementById('m-bal').innerText = Math.floor(state.bal);
+        document.getElementById('e-val').innerText = `${Math.floor(state.energy)} / ${state.maxEnergy}`;
+        document.getElementById('e-bar').style.width = (state.energy / state.maxEnergy * 100) + '%';
+        
+        // Upgrades UI
+        document.getElementById('lv-auto').innerText = state.autoLvl >= 6 ? 'MAX' : state.autoLvl;
+        document.getElementById('cost-auto').innerText = state.autoLvl >= 6 ? '∞' : AUTO_COSTS[state.autoLvl];
+        document.getElementById('auto-desc').innerText = state.autoLvl === 0 ? 'Швидкість: Вимкнено' : `1 клік кожні ${AUTO_INTERVALS[state.autoLvl]}с`;
+        document.getElementById('p-income-text').innerText = state.autoLvl === 0 ? 'Авто-клікер: Вимкнено' : `Авто-прибуток: +${(1/AUTO_INTERVALS[state.autoLvl]).toFixed(1)} TG/сек`;
         
         document.getElementById('cost-tap').innerText = state.costs.tap;
         document.getElementById('cost-energy').innerText = state.costs.energy;
-        saveData();
+        document.getElementById('cost-regen').innerText = state.costs.regen;
+        document.getElementById('lv-regen').innerText = state.regen;
+
+        save();
     }
 
-    // Tap Event
-    const tapBtn = document.getElementById('tap-btn');
-    tapBtn.addEventListener('touchstart', (e) => {
+    document.getElementById('tap-coin').addEventListener('touchstart', (e) => {
         e.preventDefault();
         if (state.energy >= state.power) {
-            state.balance += state.power;
+            state.bal += state.power;
             state.energy -= state.power;
             
-            const touch = e.touches[0];
+            const t = e.touches[0];
             const p = document.createElement('div');
-            p.className = 'float-n';
+            p.className = 'float-text';
             p.innerText = `+${state.power}`;
-            p.style.left = touch.clientX + 'px';
-            p.style.top = touch.clientY + 'px';
+            p.style.left = t.clientX + 'px';
+            p.style.top = t.clientY + 'px';
             document.body.appendChild(p);
             setTimeout(() => p.remove(), 800);
             
-            tg.HapticFeedback.impactOccurred('medium');
+            tg.HapticFeedback.impactOccurred('light');
             updateUI();
         }
     });
 
-    function buyUpgrade(type) {
-        if (type === 'tap' && state.balance >= state.costs.tap) {
-            state.balance -= state.costs.tap;
+    function buy(type) {
+        if (type === 'auto' && state.autoLvl < 6) {
+            const cost = AUTO_COSTS[state.autoLvl];
+            if (state.bal >= cost) {
+                state.bal -= cost;
+                state.autoLvl++;
+            }
+        } else if (type === 'tap' && state.bal >= state.costs.tap) {
+            state.bal -= state.costs.tap;
             state.power++;
-            state.costs.tap = Math.floor(state.costs.tap * 1.6);
-        } else if (type === 'energy' && state.balance >= state.costs.energy) {
-            state.balance -= state.costs.energy;
+            state.costs.tap = Math.floor(state.costs.tap * 1.7);
+        } else if (type === 'energy' && state.bal >= state.costs.energy) {
+            state.bal -= state.costs.energy;
             state.maxEnergy += 100;
             state.energy += 100;
             state.costs.energy = Math.floor(state.costs.energy * 1.5);
+        } else if (type === 'regen' && state.bal >= state.costs.regen) {
+            state.bal -= state.costs.regen;
+            state.regen++;
+            state.costs.regen = Math.floor(state.costs.regen * 2.2);
         }
         updateUI();
     }
 
-    function showTab(tabId, el) {
+    function showTab(id, el) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById('tab-' + tabId).classList.add('active');
+        document.getElementById('tab-' + id).classList.add('active');
         el.classList.add('active');
     }
 
-    // Game Loop (Regen)
+    // Auto-click loop (Online)
     setInterval(() => {
-        if (state.energy < state.maxEnergy) {
-            state.energy = Math.min(state.maxEnergy, state.energy + ENERGY_REGEN_PER_SEC);
-            updateUI();
+        if (state.autoLvl > 0) {
+            state.bal += (1 / AUTO_INTERVALS[state.autoLvl]);
         }
-    }, 1000);
+        if (state.energy < state.maxEnergy) {
+            state.energy = Math.min(state.maxEnergy, state.energy + (state.regen / 10));
+        }
+        updateUI();
+    }, 100);
 
-    loadData();
+    load();
     initUser();
     updateUI();
 </script>
