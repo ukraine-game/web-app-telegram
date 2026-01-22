@@ -3,43 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Empire Control Panel</title>
+    <title>Empire Central Command</title>
     <style>
         :root {
-            --bg: #0f172a;
-            --card: #1e293b;
+            --bg: #020617;
+            --card: #0f172a;
             --accent: #38bdf8;
             --red: #ef4444;
             --green: #22c55e;
-            --text: #f8fafc;
+            --gold: #fbbf24;
+            --text: #f1f5f9;
         }
 
         body {
             background: var(--bg);
             color: var(--text);
-            font-family: system-ui, -apple-system, sans-serif;
-            margin: 0;
-            padding: 20px;
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0; padding: 20px;
         }
 
-        .container { max-width: 900px; margin: 0 auto; }
-        
-        h1 { border-bottom: 2px solid var(--accent); padding-bottom: 10px; color: var(--accent); }
+        .container { max-width: 1000px; margin: 0 auto; }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+        .import-box {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #1e293b;
             margin-bottom: 30px;
         }
 
-        .stat-card {
-            background: var(--card);
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
+        textarea {
+            width: 100%;
+            height: 80px;
+            background: #020617;
             border: 1px solid #334155;
+            color: var(--accent);
+            padding: 10px;
+            border-radius: 8px;
+            resize: none;
+            margin-bottom: 10px;
+            font-family: monospace;
+            font-size: 12px;
         }
+
+        .btn {
+            border: none; padding: 10px 20px; border-radius: 8px;
+            cursor: pointer; font-weight: bold; transition: 0.2s;
+        }
+
+        .btn-primary { background: var(--accent); color: #020617; }
+        .btn-danger { background: var(--red); color: white; }
+        .btn-success { background: var(--green); color: white; }
+        .btn-action { padding: 5px 10px; font-size: 11px; margin-right: 5px; }
 
         table {
             width: 100%;
@@ -47,149 +62,143 @@
             background: var(--card);
             border-radius: 12px;
             overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #334155;
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #1e293b; }
+        th { background: #1e293b; color: var(--gold); font-size: 12px; text-transform: uppercase; }
+
+        .status-tag {
+            padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold;
         }
-
-        th { background: #334155; color: var(--accent); text-transform: uppercase; font-size: 12px; }
-
-        .btn {
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 12px;
-            margin-right: 5px;
-            color: white;
-        }
-
-        .btn-edit { background: var(--accent); }
-        .btn-ban { background: var(--red); }
-        .btn-unban { background: var(--green); }
-        .btn-refresh { background: #64748b; margin-bottom: 15px; padding: 10px 20px; }
-
-        .status-banned { color: var(--red); font-weight: bold; }
-        .status-active { color: var(--green); }
+        .tag-active { background: rgba(34, 197, 94, 0.2); color: var(--green); }
+        .tag-banned { background: rgba(239, 68, 68, 0.2); color: var(--red); }
 
         input[type="number"] {
-            background: #0f172a;
-            border: 1px solid var(--accent);
-            color: white;
-            padding: 5px;
-            border-radius: 4px;
-            width: 100px;
+            background: #020617; border: 1px solid #334155; color: white;
+            padding: 5px; border-radius: 4px; width: 120px;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>👑 Empire Admin Panel</h1>
-    
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div style="font-size: 12px; color: #94a3b8;">Гравців всього</div>
-            <div id="total-users" style="font-size: 24px; font-weight: bold;">0</div>
-        </div>
-        <div class="stat-card">
-            <div style="font-size: 12px; color: #94a3b8;">Загальний капітал</div>
-            <div id="total-money" style="font-size: 24px; font-weight: bold;">0</div>
-        </div>
+    <h1 style="color: var(--gold)">🛰️ Empire Central Command</h1>
+
+    <div class="import-box">
+        <h3>📥 Імпорт бази даних</h3>
+        <p style="font-size: 13px; color: #94a3b8;">Вставте код, який ви скопіювали в грі (Профіль -> Експорт):</p>
+        <textarea id="import-data" placeholder="Вставте JSON сюди..."></textarea>
+        <button class="btn btn-primary" onclick="importDatabase()">Завантажити базу</button>
     </div>
 
-    <button class="btn btn-refresh" onclick="renderUsers()">🔄 Оновити список</button>
+    <div id="dashboard" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2>Гравці в мережі</h2>
+            <div id="stat-count" style="color: var(--accent); font-weight: bold;"></div>
+        </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Нікнейм</th>
-                <th>Баланс</th>
-                <th>Статус</th>
-                <th>Дії</th>
-            </tr>
-        </thead>
-        <tbody id="user-table-body">
-            </tbody>
-    </table>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Гравець</th>
+                    <th>Баланс</th>
+                    <th>Статус</th>
+                    <th>Управління</th>
+                </tr>
+            </thead>
+            <tbody id="user-list"></tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-    function renderUsers() {
-        const tbody = document.getElementById('user-table-body');
+    function importDatabase() {
+        const input = document.getElementById('import-data').value;
+        try {
+            const data = JSON.parse(input);
+            if (data.users && Array.isArray(data.users)) {
+                // Зберігаємо кожного користувача в наш локальний сторедж адмінки
+                data.users.forEach(u => {
+                    localStorage.setItem(`user_${u.id}`, JSON.stringify(u));
+                });
+                
+                // Оновлюємо список всіх ID
+                const ids = data.users.map(u => u.id);
+                localStorage.setItem('all_empire_users', JSON.stringify(ids));
+                
+                alert("Базу успішно завантажено!");
+                renderTable();
+            }
+        } catch (e) {
+            alert("Помилка: Невірний формат даних!");
+        }
+    }
+
+    function renderTable() {
+        const container = document.getElementById('dashboard');
+        const tbody = document.getElementById('user-list');
+        const ids = JSON.parse(localStorage.getItem('all_empire_users') || "[]");
+        
+        container.style.display = ids.length > 0 ? 'block' : 'none';
         tbody.innerHTML = '';
         
-        const allIds = JSON.parse(localStorage.getItem('all_empire_users') || "[]");
-        let totalMoney = 0;
+        document.getElementById('stat-count').innerText = `Всього: ${ids.length}`;
 
-        allIds.forEach(id => {
-            const userData = JSON.parse(localStorage.getItem(`user_${id}`));
-            if (!userData) return;
+        ids.forEach(id => {
+            const u = JSON.parse(localStorage.getItem(`user_${id}`));
+            if (!u) return;
 
-            totalMoney += userData.bal;
-            
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="font-family: monospace;">#${userData.id}</td>
-                <td>${userData.name}</td>
+                <td style="font-family: monospace; color: var(--accent);">#${u.id}</td>
+                <td><b>${u.name}</b></td>
+                <td><input type="number" id="bal-${u.id}" value="${Math.floor(u.bal)}"></td>
                 <td>
-                    <input type="number" id="input-${id}" value="${Math.floor(userData.bal)}">
-                </td>
-                <td class="${userData.banned ? 'status-banned' : 'status-active'}">
-                    ${userData.banned ? 'BANNED' : 'ACTIVE'}
+                    <span class="status-tag ${u.banned ? 'tag-banned' : 'tag-active'}">
+                        ${u.banned ? 'ЗАБАНЕНИЙ' : 'АКТИВНИЙ'}
+                    </span>
                 </td>
                 <td>
-                    <button class="btn btn-edit" onclick="applyAction('${id}', 'set')">Вст.</button>
-                    ${userData.banned ? 
-                        `<button class="btn btn-unban" onclick="applyAction('${id}', 'unban')">Розбан</button>` : 
-                        `<button class="btn btn-ban" onclick="applyAction('${id}', 'ban')">Бан</button>`
+                    <button class="btn btn-success btn-action" onclick="saveUser('${u.id}', 'set')">Зберегти</button>
+                    ${u.banned ? 
+                        `<button class="btn btn-primary btn-action" onclick="saveUser('${u.id}', 'unban')">Розбан</button>` : 
+                        `<button class="btn btn-danger btn-action" onclick="saveUser('${u.id}', 'ban')">БАН</button>`
                     }
                 </td>
             `;
             tbody.appendChild(tr);
         });
-
-        document.getElementById('total-users').innerText = allIds.length;
-        document.getElementById('total-money').innerText = Math.floor(totalMoney).toLocaleString();
     }
 
-    function applyAction(id, action) {
-        const userData = JSON.parse(localStorage.getItem(`user_${id}`));
-        const inputVal = parseFloat(document.getElementById(`input-${id}`).value);
+    function saveUser(id, action) {
+        let u = JSON.parse(localStorage.getItem(`user_${id}`));
+        const newBal = parseFloat(document.getElementById(`bal-${id}`).value);
         
         let cmd = { type: '', val: null };
 
         if (action === 'set') {
-            userData.bal = inputVal;
-            cmd = { type: 'setBal', val: inputVal };
+            u.bal = newBal;
+            cmd = { type: 'setBal', val: newBal };
         } else if (action === 'ban') {
-            userData.banned = true;
+            u.banned = true;
             cmd = { type: 'ban', val: true };
         } else if (action === 'unban') {
-            userData.banned = false;
+            u.banned = false;
             cmd = { type: 'ban', val: false };
         }
 
-        // Зберігаємо змінені дані в профілі користувача
-        localStorage.setItem(`user_${id}`, JSON.stringify(userData));
-        
-        // Відправляємо команду в index.html (через localStorage)
+        localStorage.setItem(`user_${id}`, JSON.stringify(u));
+        // Ця команда спрацює, якщо ви відкриєте admin.html і гру на одному пристрої/браузері
         localStorage.setItem(`admin_cmd_${id}`, JSON.stringify(cmd));
-
-        alert('Дію застосовано! Зміни підтягнуться у гравця при наступному оновленні.');
-        renderUsers();
+        
+        alert("Дію записано в базу. Гравцю потрібно оновити гру для змін.");
+        renderTable();
     }
 
-    // Початковий рендер
-    renderUsers();
-
-    // Авто-оновлення кожні 5 секунд
-    setInterval(renderUsers, 5000);
+    // Рендер при старті, якщо дані вже були
+    renderTable();
 </script>
 
 </body>
