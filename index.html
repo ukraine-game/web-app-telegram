@@ -23,6 +23,7 @@
             color: var(--text-color);
             overflow: hidden;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .container { display: flex; flex-direction: column; height: 100vh; }
@@ -36,25 +37,25 @@
         }
         .user-info { display: flex; align-items: center; gap: 10px; }
         .avatar {
-            width: 38px; height: 38px; border-radius: 50%;
+            width: 40px; height: 40px; border-radius: 50%;
             background: linear-gradient(45deg, var(--tg-blue), #60a5fa);
             display: flex; align-items: center; justify-content: center;
-            font-weight: bold; font-size: 14px; border: 2px solid #3b82f6;
-            overflow: hidden;
+            font-weight: bold; border: 2px solid #3b82f6; overflow: hidden;
         }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
         
         .rank-badge {
-            font-size: 10px; background: var(--tg-blue); padding: 2px 8px;
-            border-radius: 10px; text-transform: uppercase; font-weight: 800;
+            font-size: 9px; background: var(--tg-blue); padding: 1px 6px;
+            border-radius: 6px; text-transform: uppercase; font-weight: 800;
+            margin-top: 2px; display: inline-block;
         }
 
         /* Score Area */
         .score-section { text-align: center; padding: 20px 0; }
-        .score-label { font-size: 12px; color: var(--gray); text-transform: uppercase; letter-spacing: 1.5px; }
+        .score-label { font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
         .score-main { 
-            font-size: 44px; font-weight: 900; color: white;
-            display: flex; align-items: center; justify-content: center; gap: 12px;
+            font-size: 42px; font-weight: 900; color: white;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
         }
         #p-income-text { 
             display: none; font-size: 13px; color: var(--accent); margin-top: 8px;
@@ -70,44 +71,45 @@
         /* Tap Mechanism */
         .tap-box { display: flex; justify-content: center; align-items: center; height: 260px; margin: 10px 0; }
         .tg-coin {
-            width: 210px; height: 210px; cursor: pointer;
+            width: 220px; height: 220px; cursor: pointer;
             transition: transform 0.05s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            filter: drop-shadow(0 0 35px rgba(36, 161, 222, 0.3));
+            filter: drop-shadow(0 0 30px rgba(36, 161, 222, 0.2));
         }
-        .tg-coin:active { transform: scale(0.92); }
+        .tg-coin:active { transform: scale(0.95); }
 
         /* Stats Bar */
         .stats-wrap { background: var(--card-bg); padding: 15px; border-radius: 20px; margin-bottom: 10px; border: 1px solid #2d3748; }
-        .progress-container { height: 12px; background: #1e293b; border-radius: 10px; overflow: hidden; margin-top: 8px; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa); width: 100%; transition: width 0.3s; }
+        .progress-container { height: 10px; background: #1e293b; border-radius: 10px; overflow: hidden; margin-top: 8px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa); width: 100%; transition: width 0.2s; }
 
         /* Upgrade Cards */
         .card {
-            background: var(--card-bg); padding: 16px; border-radius: 18px;
+            background: var(--card-bg); padding: 14px; border-radius: 18px;
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 12px; border: 1px solid #2d3748;
+            margin-bottom: 10px; border: 1px solid #2d3748;
         }
-        .card-info h4 { margin: 0; font-size: 16px; }
-        .card-info p { margin: 4px 0 0; font-size: 11px; color: var(--gray); }
+        .card-info h4 { margin: 0; font-size: 15px; }
+        .card-info p { margin: 3px 0 0; font-size: 11px; color: var(--gray); }
         .btn-upgrade {
             background: var(--tg-blue); color: white; border: none;
-            padding: 10px 14px; border-radius: 12px; font-weight: bold; min-width: 85px;
+            padding: 10px 12px; border-radius: 10px; font-weight: bold; min-width: 80px;
         }
+        .btn-upgrade:disabled { background: #2d3748; color: #4b5563; }
 
         /* Nav Bar */
         .nav {
             position: fixed; bottom: 0; width: 100%; display: flex;
             background: #111827; padding: 10px 0 25px; border-top: 1px solid #1e293b;
         }
-        .nav-item { flex: 1; text-align: center; font-size: 12px; color: #64748b; }
+        .nav-item { flex: 1; text-align: center; font-size: 12px; color: #64748b; cursor: pointer; }
         .nav-item.active { color: var(--tg-blue); font-weight: bold; }
 
         .float-text {
             position: absolute; color: white; font-weight: 800; font-size: 28px;
-            pointer-events: none; animation: popUp 0.8s ease-out forwards;
-            z-index: 100;
+            pointer-events: none; animation: popUp 0.7s ease-out forwards;
+            z-index: 100; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
-        @keyframes popUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-120px); } }
+        @keyframes popUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
     </style>
 </head>
 <body>
@@ -121,7 +123,7 @@
                 <div id="u-rank-head" class="rank-badge">Новачок</div>
             </div>
         </div>
-        <div style="background: #1e293b; padding: 5px 12px; border-radius: 12px; font-size: 14px; font-weight: bold; color: var(--gold);">
+        <div style="background: #1e293b; padding: 6px 14px; border-radius: 12px; font-size: 14px; font-weight: 800; color: var(--gold);">
             💰 <span id="h-bal">0</span>
         </div>
     </div>
@@ -129,12 +131,12 @@
     <div class="content">
         <div id="tab-main" class="tab-content active">
             <div class="score-section">
-                <div class="score-label">Ваш капітал</div>
+                <div class="score-label">Твій баланс</div>
                 <div class="score-main">
-                    <img src="https://telegram.org/img/t_logo.png" width="40">
+                    <img src="https://telegram.org/img/t_logo.png" width="35">
                     <span id="m-bal">0</span>
                 </div>
-                <div style="height: 30px; margin-top: 5px;">
+                <div style="height: 35px; display: flex; justify-content: center; align-items: center;">
                     <div id="p-income-text"></div>
                 </div>
             </div>
@@ -144,7 +146,7 @@
             </div>
 
             <div class="stats-wrap">
-                <div style="display: flex; justify-content: space-between; font-size: 14px;">
+                <div style="display: flex; justify-content: space-between; font-size: 13px;">
                     <span>⚡ Енергія</span>
                     <span id="e-val">200 / 200</span>
                 </div>
@@ -155,25 +157,53 @@
         </div>
 
         <div id="tab-upgrades" class="tab-content">
-            <h3 style="margin: 20px 0 15px;">Покращення</h3>
+            <h3 style="margin: 20px 0 15px;">Магазин покращень</h3>
+            
             <div class="card">
                 <div class="card-info">
                     <h4>Auto-Clicker 🤖</h4>
                     <p id="auto-desc">1 тап - 0с</p>
                     <p>Ціна: <span id="cost-auto">500</span> TG</p>
                 </div>
-                <button class="btn-upgrade" onclick="buy('auto')">Level <span id="lv-auto">0</span></button>
-            </div>
+                <button class="btn-upgrade" id="btn-buy-auto" onclick="buy('auto')">Level <span id="lv-auto">0</span></button>
             </div>
 
+            <div class="card">
+                <div class="card-info">
+                    <h4>Сила тапу 💪</h4>
+                    <p>+1 за клік</p>
+                    <p>Ціна: <span id="cost-tap">100</span> TG</p>
+                </div>
+                <button class="btn-upgrade" onclick="buy('tap')">Купити</button>
+            </div>
+
+            <div class="card">
+                <div class="card-info">
+                    <h4>Енерго-буст 🔋</h4>
+                    <p>+100 до ліміту</p>
+                    <p>Ціна: <span id="cost-energy">200</span> TG</p>
+                </div>
+                <button class="btn-upgrade" onclick="buy('energy')">Купити</button>
+            </div>
+
+            <div class="card">
+                <div class="card-info">
+                    <h4>Регенерація ⚡</h4>
+                    <p>Швидше відновлення</p>
+                    <p>Ціна: <span id="cost-regen">300</span> TG</p>
+                </div>
+                <button class="btn-upgrade" onclick="buy('regen')">Lvl <span id="lv-regen">1</span></button>
+            </div>
+        </div>
+
         <div id="tab-profile" class="tab-content">
-            <h3 style="margin: 20px 0 15px;">Мій кабінет</h3>
-            <div class="card" style="flex-direction: column; align-items: flex-start; gap: 12px;">
-                <div style="width:100%; display:flex; justify-content:space-between; border-bottom:1px solid #2d3748; padding-bottom:10px;">
-                    <span style="color:var(--gray)">Гравець:</span>
+            <h3 style="margin: 20px 0 15px;">Профіль гравця</h3>
+            <div class="card" style="flex-direction: column; align-items: flex-start; gap: 12px; padding: 20px;">
+                <div style="width:100%; display:flex; justify-content:space-between; border-bottom:1px solid #2d3748; padding-bottom:8px;">
+                    <span style="color:var(--gray)">Нікнейм:</span>
                     <span id="p-name" style="font-weight:bold">-</span>
                 </div>
-                <div style="width:100%; display:flex; justify-content:space-between; border-bottom:1px solid #2d3748; padding-bottom:10px;">
+                <div style="width:100%; display:flex; justify-content:space-between; border-bottom:1px solid #2d3748; padding-bottom:8px;">
                     <span style="color:var(--gray)">Ранг:</span>
                     <span id="p-rank" style="color:var(--accent); font-weight:bold">Новачок</span>
                 </div>
@@ -182,15 +212,11 @@
                     <span id="p-game-id" style="font-family:monospace; color:var(--gold)">#---</span>
                 </div>
             </div>
-            
-            <p style="font-size: 11px; color: var(--gray); text-align: center; margin-top: 20px;">
-                Версія гри: 1.0.4 <br> Дані синхронізуються локально.
-            </p>
         </div>
     </div>
 
     <div class="nav">
-        <div class="nav-item active" onclick="showTab('main', this)">🏠 Головна</div>
+        <div class="nav-item active" onclick="showTab('main', this)">🏠 Основна</div>
         <div class="nav-item" onclick="showTab('upgrades', this)">🚀 Апгрейди</div>
         <div class="nav-item" onclick="showTab('profile', this)">👤 Профіль</div>
     </div>
@@ -211,7 +237,7 @@
         power: 1,
         regen: 1,
         autoLvl: 0,
-        gameId: null, // Буде встановлено ботом або при першому вході
+        gameId: null,
         lastTime: Date.now(),
         costs: { tap: 100, energy: 200, regen: 300 }
     };
@@ -227,33 +253,24 @@
     }
 
     function load() {
-        const data = localStorage.getItem('star_empire_save_v3');
+        const data = localStorage.getItem('star_empire_v4');
         if (data) {
             state = {...state, ...JSON.parse(data)};
             const now = Date.now();
             const diff = Math.floor((now - state.lastTime) / 1000);
             
-            // Offline auto-clicker
             if (state.autoLvl > 0) {
-                const interval = AUTO_INTERVALS[state.autoLvl];
-                const earned = Math.floor(diff / interval);
-                if (earned > 0) {
-                    state.bal += earned;
-                    tg.showAlert(`Поки вас не було, ви заробили ${earned} TG!`);
-                }
+                const earned = Math.floor(diff / AUTO_INTERVALS[state.autoLvl]);
+                if (earned > 0) state.bal += earned;
             }
             state.energy = Math.min(state.maxEnergy, state.energy + (diff * (state.regen * 0.5)));
         }
-        
-        // Симуляція Game ID для оффлайн режиму, якщо бот ще не передав справжній
-        if (!state.gameId) {
-            state.gameId = Math.floor(Math.random() * 1000) + 100; 
-        }
+        if (!state.gameId) state.gameId = Math.floor(1000 + Math.random() * 9000);
     }
 
     function save() {
         state.lastTime = Date.now();
-        localStorage.setItem('star_empire_save_v3', JSON.stringify(state));
+        localStorage.setItem('star_empire_v4', JSON.stringify(state));
     }
 
     function initUser() {
@@ -262,37 +279,41 @@
             document.getElementById('u-name-head').innerText = u.first_name;
             document.getElementById('p-name').innerText = u.first_name + (u.last_name ? ' ' + u.last_name : '');
             if (u.photo_url) document.getElementById('u-avatar').innerHTML = `<img src="${u.photo_url}">`;
-            else document.getElementById('u-avatar').innerText = u.first_name[0];
+            else document.getElementById('u-avatar').innerText = u.first_name[0].toUpperCase();
         }
     }
 
     function updateUI() {
-        const currentRank = getRank(state.bal);
-        
-        document.getElementById('h-bal').innerText = Math.floor(state.bal);
-        document.getElementById('m-bal').innerText = Math.floor(state.bal);
+        const rank = getRank(state.bal);
+        document.getElementById('h-bal').innerText = Math.floor(state.bal).toLocaleString();
+        document.getElementById('m-bal').innerText = Math.floor(state.bal).toLocaleString();
         document.getElementById('e-val').innerText = `${Math.floor(state.energy)} / ${state.maxEnergy}`;
         document.getElementById('e-bar').style.width = (state.energy / state.maxEnergy * 100) + '%';
         
-        // Ранги
-        document.getElementById('u-rank-head').innerText = currentRank;
-        document.getElementById('p-rank').innerText = currentRank;
+        document.getElementById('u-rank-head').innerText = rank;
+        document.getElementById('p-rank').innerText = rank;
         document.getElementById('p-game-id').innerText = "#" + state.gameId;
 
-        // Auto-clicker text
-        const incomeText = document.getElementById('p-income-text');
+        const inc = document.getElementById('p-income-text');
         if (state.autoLvl > 0) {
-            incomeText.style.display = 'inline-block';
-            incomeText.innerText = `🤖 Авто-клікер: 1 тап — ${AUTO_INTERVALS[state.autoLvl]}с`;
+            inc.style.display = 'block';
+            inc.innerText = `🤖 Авто-клікер: 1 тап — ${AUTO_INTERVALS[state.autoLvl]} сек`;
+        } else {
+            inc.style.display = 'none';
         }
 
-        document.getElementById('lv-auto').innerText = state.autoLvl;
-        document.getElementById('cost-auto').innerText = AUTO_COSTS[state.autoLvl] || "MAX";
+        document.getElementById('lv-auto').innerText = state.autoLvl >= 6 ? 'MAX' : state.autoLvl;
+        document.getElementById('cost-auto').innerText = state.autoLvl >= 6 ? '∞' : AUTO_COSTS[state.autoLvl];
+        document.getElementById('auto-desc').innerText = state.autoLvl === 0 ? 'Статус: Вимкнено' : `1 тап кожні ${AUTO_INTERVALS[state.autoLvl]}с`;
         
+        document.getElementById('cost-tap').innerText = state.costs.tap;
+        document.getElementById('cost-energy').innerText = state.costs.energy;
+        document.getElementById('cost-regen').innerText = state.costs.regen;
+        document.getElementById('lv-regen').innerText = state.regen;
+
         save();
     }
 
-    // Механіка тапу
     document.getElementById('tap-coin').addEventListener('touchstart', (e) => {
         e.preventDefault();
         if (state.energy >= state.power) {
@@ -306,7 +327,7 @@
             p.style.left = t.clientX + 'px';
             p.style.top = t.clientY + 'px';
             document.body.appendChild(p);
-            setTimeout(() => p.remove(), 800);
+            setTimeout(() => p.remove(), 700);
             
             tg.HapticFeedback.impactOccurred('light');
             updateUI();
@@ -317,8 +338,21 @@
         if (type === 'auto' && state.autoLvl < 6 && state.bal >= AUTO_COSTS[state.autoLvl]) {
             state.bal -= AUTO_COSTS[state.autoLvl];
             state.autoLvl++;
+        } else if (type === 'tap' && state.bal >= state.costs.tap) {
+            state.bal -= state.costs.tap;
+            state.power++;
+            state.costs.tap = Math.floor(state.costs.tap * 1.8);
+        } else if (type === 'energy' && state.bal >= state.costs.energy) {
+            state.bal -= state.costs.energy;
+            state.maxEnergy += 100;
+            state.energy += 100;
+            state.costs.energy = Math.floor(state.costs.energy * 1.5);
+        } else if (type === 'regen' && state.bal >= state.costs.regen) {
+            state.bal -= state.costs.regen;
+            state.regen++;
+            state.costs.regen = Math.floor(state.costs.regen * 2.1);
         }
-        // ... (інші покупки залишаються як були)
+        tg.HapticFeedback.notificationOccurred('success');
         updateUI();
     }
 
