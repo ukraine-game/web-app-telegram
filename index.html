@@ -94,8 +94,10 @@
         #ban-screen {
             position: fixed; inset: 0; background: #000; color: white;
             display: none; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 9999; text-align: center; padding: 20px;
+            z-index: 10000; text-align: center; padding: 20px;
         }
+        #ban-screen h1 { color: var(--red); font-size: 40px; margin-bottom: 10px; font-weight: 900; }
+        #ban-screen p { color: #ccc; font-size: 14px; }
 
         #admin-auth-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85);
@@ -116,7 +118,7 @@
         .btn-add { background: var(--green); }
         .btn-sub { background: var(--red); }
         .btn-set { background: var(--tg-blue); }
-        .btn-export { background: var(--gold); color: black; grid-column: span 3; margin-top: 10px; }
+        .btn-ban { background: #000; color: var(--red); grid-column: span 3; border: 1px solid var(--red); margin-top: 10px; }
 
         .nav {
             position: fixed; bottom: 0; width: 100%; display: flex;
@@ -136,9 +138,8 @@
 <body>
 
 <div id="ban-screen">
-    <h1 style="color: var(--red);">АККАУНТ ЗАБЛОКОВАНО</h1>
-    <p>Ви порушили правила імперії.</p>
-    <p id="ban-id-display" style="color: var(--gray); font-family: monospace;"></p>
+    <h1>Заблоковано!</h1>
+    <p>Вас було заблоковано за порушення правил гри!</p>
 </div>
 
 <div id="admin-auth-overlay">
@@ -196,15 +197,15 @@
                 <div class="card-info">
                     <h4>Auto-Clicker 🤖</h4>
                     <p id="auto-desc">Статус: Вимкнено</p>
-                    <p>Ціна: <span id="cost-auto">500</span> TG</p>
+                    <p>Ціна: <span id="cost-auto">1000</span></p>
                 </div>
                 <button class="btn-upgrade" onclick="buy('auto')">Level <span id="lv-auto">0</span></button>
             </div>
             <div class="card">
                 <div class="card-info">
                     <h4>Сила тапу 💪</h4>
-                    <p>+1 за клік</p>
-                    <p>Ціна: <span id="cost-tap">50</span> TG</p>
+                    <p id="tap-desc">+1 за клік</p>
+                    <p>Ціна: <span id="cost-tap">100</span></p>
                 </div>
                 <button class="btn-upgrade" onclick="buy('tap')">Купити</button>
             </div>
@@ -212,17 +213,17 @@
                 <div class="card-info">
                     <h4>Енерго-буст 🔋</h4>
                     <p>+100 до ліміту</p>
-                    <p>Ціна: <span id="cost-energy">100</span> TG</p>
+                    <p>Ціна: <span id="cost-energy">100</span></p>
                 </div>
                 <button class="btn-upgrade" onclick="buy('energy')">Купити</button>
             </div>
             <div class="card">
                 <div class="card-info">
                     <h4>Регенерація ⚡</h4>
-                    <p>Швидше відновлення</p>
-                    <p>Ціна: <span id="cost-regen">150</span> TG</p>
+                    <p>Lvl <span id="lv-regen">1</span></p>
+                    <p>Ціна: <span id="cost-regen">200</span></p>
                 </div>
-                <button class="btn-upgrade" onclick="buy('regen')">Lvl <span id="lv-regen">1</span></button>
+                <button class="btn-upgrade" onclick="buy('regen')">Купити</button>
             </div>
         </div>
 
@@ -232,10 +233,6 @@
                 <div style="width:100%; display:flex; justify-content:space-between; border-bottom:1px solid #2d3748; padding-bottom:8px;">
                     <span style="color:var(--gray)">Гравець:</span>
                     <span id="p-name" style="font-weight:bold">-</span>
-                </div>
-                <div style="width:100%; display:flex; justify-content:space-between; border-bottom:1px solid #2d3748; padding-bottom:8px;">
-                    <span style="color:var(--gray)">Ранг:</span>
-                    <span id="p-rank" style="color:var(--accent); font-weight:bold">Новачок</span>
                 </div>
                 <div style="width:100%; display:flex; justify-content:space-between;">
                     <span style="color:var(--gray)">Game ID:</span>
@@ -249,8 +246,8 @@
                 <div class="admin-btn-grid">
                     <button class="btn-adm btn-add" onclick="adminOp('add')">Видача</button>
                     <button class="btn-adm btn-sub" onclick="adminOp('sub')">Мінус</button>
-                    <button class="btn-adm btn-set" onclick="adminOp('set')">Встановл.</button>
-                    <button class="btn-adm btn-export" onclick="exportData()">📤 Копіювати базу для admin.html</button>
+                    <button class="btn-adm btn-set" onclick="adminOp('set')">Вст.</button>
+                    <button class="btn-adm btn-ban" onclick="adminOp('ban')">Заблокувати акаунт</button>
                 </div>
             </div>
         </div>
@@ -269,7 +266,10 @@
     tg.expand();
 
     const AUTO_INTERVALS = [0, 5, 4, 3, 2, 1, 0.5];
-    const AUTO_COSTS = [500, 1500, 5000, 15000, 50000, 150000];
+    const AUTO_COSTS = [1000, 7000, 20000, 65000, 150000, 400000];
+    const TAP_COSTS = [100, 250, 400, 700, 1000, 1250, 2000, 5000];
+    const ENERGY_COST_STEP = 150;
+    const REGEN_COST_BASE = 200;
 
     let state = {
         bal: 0,
@@ -281,8 +281,7 @@
         gameId: null,
         isBanned: false,
         userName: "Гість",
-        lastTime: Date.now(),
-        costs: { tap: 50, energy: 100, regen: 150 }
+        lastTime: Date.now()
     };
 
     let idClicks = 0;
@@ -290,72 +289,22 @@
 
     function getRank(bal) {
         if (bal < 4000) return "Новачок";
-        if (bal < 10000) return "Місцевий";
         if (bal < 15000) return "Досвідчений";
-        if (bal < 30000) return "Професіонал";
         if (bal < 50000) return "Бізнесмен";
-        if (bal < 100000) return "Проф. Бізнесмен";
-        return "Власник";
+        return "Імператор";
     }
 
     function load() {
-        const data = localStorage.getItem('star_empire_final_v8');
+        const data = localStorage.getItem('star_empire_final_v9');
         if (data) state = {...state, ...JSON.parse(data)};
-        
-        // Remote check (simulated via localstorage across pages)
-        const remoteCmd = localStorage.getItem(`admin_cmd_${state.gameId}`);
-        if (remoteCmd) {
-            const cmd = JSON.parse(remoteCmd);
-            if (cmd.type === 'setBal') state.bal = cmd.val;
-            if (cmd.type === 'ban') state.isBanned = cmd.val;
-            localStorage.removeItem(`admin_cmd_${state.gameId}`);
-        }
-
-        if (!state.gameId) state.gameId = Math.floor(1000 + Math.random() * 9000);
-        if (state.isBanned) {
-            document.getElementById('ban-screen').style.display = 'flex';
-            document.getElementById('ban-id-display').innerText = "ID: " + state.gameId;
-        }
+        if (!state.gameId) state.gameId = Math.floor(100000 + Math.random() * 900000);
+        if (state.isBanned) document.getElementById('ban-screen').style.display = 'flex';
     }
 
     function save() {
         if (state.isBanned) return;
         state.lastTime = Date.now();
-        localStorage.setItem('star_empire_final_v8', JSON.stringify(state));
-        
-        // Sync for admin
-        const userData = { id: state.gameId, name: state.userName, bal: state.bal, banned: state.isBanned };
-        localStorage.setItem(`user_${state.gameId}`, JSON.stringify(userData));
-        let allIds = JSON.parse(localStorage.getItem('all_empire_users') || "[]");
-        if (!allIds.includes(state.gameId)) {
-            allIds.push(state.gameId);
-            localStorage.setItem('all_empire_users', JSON.stringify(allIds));
-        }
-    }
-
-    function exportData() {
-        const allIds = JSON.parse(localStorage.getItem('all_empire_users') || "[]");
-        const users = allIds.map(id => JSON.parse(localStorage.getItem(`user_${id}`)));
-        const dataStr = JSON.stringify({timestamp: Date.now(), users: users});
-        
-        const el = document.createElement('textarea');
-        el.value = dataStr;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
-        alert("Дані бази скопійовано! Вставте їх в admin.html");
-    }
-
-    function initUser() {
-        const u = tg.initDataUnsafe?.user;
-        if (u) {
-            state.userName = u.first_name;
-            document.getElementById('u-name-head').innerText = u.first_name;
-            document.getElementById('p-name').innerText = u.first_name + (u.last_name ? ' ' + u.last_name : '');
-            if (u.photo_url) document.getElementById('u-avatar').innerHTML = `<img src="${u.photo_url}">`;
-            else document.getElementById('u-avatar').innerText = u.first_name[0].toUpperCase();
-        }
+        localStorage.setItem('star_empire_final_v9', JSON.stringify(state));
     }
 
     function updateUI() {
@@ -366,7 +315,6 @@
         document.getElementById('e-val').innerText = `${Math.floor(state.energy)} / ${state.maxEnergy}`;
         document.getElementById('e-bar').style.width = (state.energy / state.maxEnergy * 100) + '%';
         document.getElementById('u-rank-head').innerText = rank;
-        document.getElementById('p-rank').innerText = rank;
         document.getElementById('p-game-id').innerText = "#" + state.gameId;
 
         const inc = document.getElementById('p-income-text');
@@ -375,13 +323,37 @@
             inc.innerText = `🤖 Авто: +${state.power} кожні ${AUTO_INTERVALS[state.autoLvl]}с`;
         }
 
+        // Upgrades UI
         document.getElementById('lv-auto').innerText = state.autoLvl >= 6 ? 'MAX' : state.autoLvl;
         document.getElementById('cost-auto').innerText = state.autoLvl >= 6 ? '∞' : AUTO_COSTS[state.autoLvl];
-        document.getElementById('cost-tap').innerText = state.costs.tap;
-        document.getElementById('cost-energy').innerText = state.costs.energy;
-        document.getElementById('cost-regen').innerText = state.costs.regen;
+        
+        let tapPrice = TAP_COSTS[state.power - 1] || state.power * 1000;
+        document.getElementById('cost-tap').innerText = tapPrice;
+        document.getElementById('tap-desc').innerText = `+${state.power} за клік`;
+        
+        document.getElementById('cost-energy').innerText = 100 + ((state.maxEnergy - 200) / 100) * ENERGY_COST_STEP;
         document.getElementById('lv-regen').innerText = state.regen;
+        document.getElementById('cost-regen').innerText = state.regen * REGEN_COST_BASE;
+        
         save();
+    }
+
+    function buy(type) {
+        if (state.isBanned) return;
+        if (type === 'auto' && state.autoLvl < 6) {
+            let price = AUTO_COSTS[state.autoLvl];
+            if (state.bal >= price) { state.bal -= price; state.autoLvl++; }
+        } else if (type === 'tap') {
+            let price = TAP_COSTS[state.power - 1] || state.power * 1000;
+            if (state.bal >= price) { state.bal -= price; state.power++; }
+        } else if (type === 'energy') {
+            let price = 100 + ((state.maxEnergy - 200) / 100) * ENERGY_COST_STEP;
+            if (state.bal >= price) { state.bal -= price; state.maxEnergy += 100; state.energy += 100; }
+        } else if (type === 'regen') {
+            let price = state.regen * REGEN_COST_BASE;
+            if (state.bal >= price) { state.bal -= price; state.regen++; }
+        }
+        updateUI();
     }
 
     function handleIdClick() {
@@ -394,19 +366,10 @@
         }
     }
 
-    function closeAdminAuth() {
-        document.getElementById('admin-auth-overlay').style.display = 'none';
-        document.getElementById('admin-pass').value = '';
-    }
-
     function checkAdminPass() {
         if (document.getElementById('admin-pass').value === 'admin') {
             document.getElementById('admin-panel').style.display = 'block';
-            tg.HapticFeedback.notificationOccurred('success');
             closeAdminAuth();
-        } else {
-            tg.HapticFeedback.notificationOccurred('error');
-            alert('Невірно!');
         }
     }
 
@@ -415,8 +378,17 @@
         if (type === 'add') state.bal += val;
         else if (type === 'sub') state.bal -= val;
         else if (type === 'set') state.bal = val;
+        else if (type === 'ban') {
+            state.isBanned = true;
+            save();
+            location.reload();
+        }
         updateUI();
-        tg.HapticFeedback.notificationOccurred('success');
+    }
+
+    function closeAdminAuth() {
+        document.getElementById('admin-auth-overlay').style.display = 'none';
+        document.getElementById('admin-pass').value = '';
     }
 
     document.getElementById('tap-coin').addEventListener('touchstart', (e) => {
@@ -438,28 +410,6 @@
         }
     });
 
-    function buy(type) {
-        if (state.isBanned) return;
-        if (type === 'auto' && state.autoLvl < 6 && state.bal >= AUTO_COSTS[state.autoLvl]) {
-            state.bal -= AUTO_COSTS[state.autoLvl];
-            state.autoLvl++;
-        } else if (type === 'tap' && state.bal >= state.costs.tap) {
-            state.bal -= state.costs.tap;
-            state.power++;
-            state.costs.tap = Math.floor(state.costs.tap * 1.5);
-        } else if (type === 'energy' && state.bal >= state.costs.energy) {
-            state.bal -= state.costs.energy;
-            state.maxEnergy += 100;
-            state.energy += 100;
-            state.costs.energy = Math.floor(state.costs.energy * 1.3);
-        } else if (type === 'regen' && state.bal >= state.costs.regen) {
-            state.bal -= state.costs.regen;
-            state.regen++;
-            state.costs.regen = Math.floor(state.costs.regen * 1.6);
-        }
-        updateUI();
-    }
-
     function showTab(id, el) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -474,8 +424,16 @@
         updateUI();
     }, 100);
 
+    const u = tg.initDataUnsafe?.user;
+    if (u) {
+        state.userName = u.first_name;
+        document.getElementById('u-name-head').innerText = u.first_name;
+        document.getElementById('p-name').innerText = u.first_name + (u.last_name ? ' ' + u.last_name : '');
+        if (u.photo_url) document.getElementById('u-avatar').innerHTML = `<img src="${u.photo_url}">`;
+        else document.getElementById('u-avatar').innerText = u.first_name[0].toUpperCase();
+    }
+
     load();
-    initUser();
     updateUI();
 </script>
 </body>
