@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empire Control Panel</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --accent: #38bdf8;
+            --red: #ef4444;
+            --green: #22c55e;
+            --text: #f8fafc;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        h1 { border-bottom: 2px solid var(--accent); padding-bottom: 10px; color: var(--accent); }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #334155;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+
+        th { background: #334155; color: var(--accent); text-transform: uppercase; font-size: 12px; }
+
+        .btn {
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            margin-right: 5px;
+            color: white;
+        }
+
+        .btn-edit { background: var(--accent); }
+        .btn-ban { background: var(--red); }
+        .btn-unban { background: var(--green); }
+        .btn-refresh { background: #64748b; margin-bottom: 15px; padding: 10px 20px; }
+
+        .status-banned { color: var(--red); font-weight: bold; }
+        .status-active { color: var(--green); }
+
+        input[type="number"] {
+            background: #0f172a;
+            border: 1px solid var(--accent);
+            color: white;
+            padding: 5px;
+            border-radius: 4px;
+            width: 100px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>👑 Empire Admin Panel</h1>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div style="font-size: 12px; color: #94a3b8;">Гравців всього</div>
+            <div id="total-users" style="font-size: 24px; font-weight: bold;">0</div>
+        </div>
+        <div class="stat-card">
+            <div style="font-size: 12px; color: #94a3b8;">Загальний капітал</div>
+            <div id="total-money" style="font-size: 24px; font-weight: bold;">0</div>
+        </div>
+    </div>
+
+    <button class="btn btn-refresh" onclick="renderUsers()">🔄 Оновити список</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Нікнейм</th>
+                <th>Баланс</th>
+                <th>Статус</th>
+                <th>Дії</th>
+            </tr>
+        </thead>
+        <tbody id="user-table-body">
+            </tbody>
+    </table>
+</div>
+
+<script>
+    function renderUsers() {
+        const tbody = document.getElementById('user-table-body');
+        tbody.innerHTML = '';
+        
+        const allIds = JSON.parse(localStorage.getItem('all_empire_users') || "[]");
+        let totalMoney = 0;
+
+        allIds.forEach(id => {
+            const userData = JSON.parse(localStorage.getItem(`user_${id}`));
+            if (!userData) return;
+
+            totalMoney += userData.bal;
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-family: monospace;">#${userData.id}</td>
+                <td>${userData.name}</td>
+                <td>
+                    <input type="number" id="input-${id}" value="${Math.floor(userData.bal)}">
+                </td>
+                <td class="${userData.banned ? 'status-banned' : 'status-active'}">
+                    ${userData.banned ? 'BANNED' : 'ACTIVE'}
+                </td>
+                <td>
+                    <button class="btn btn-edit" onclick="applyAction('${id}', 'set')">Вст.</button>
+                    ${userData.banned ? 
+                        `<button class="btn btn-unban" onclick="applyAction('${id}', 'unban')">Розбан</button>` : 
+                        `<button class="btn btn-ban" onclick="applyAction('${id}', 'ban')">Бан</button>`
+                    }
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('total-users').innerText = allIds.length;
+        document.getElementById('total-money').innerText = Math.floor(totalMoney).toLocaleString();
+    }
+
+    function applyAction(id, action) {
+        const userData = JSON.parse(localStorage.getItem(`user_${id}`));
+        const inputVal = parseFloat(document.getElementById(`input-${id}`).value);
+        
+        let cmd = { type: '', val: null };
+
+        if (action === 'set') {
+            userData.bal = inputVal;
+            cmd = { type: 'setBal', val: inputVal };
+        } else if (action === 'ban') {
+            userData.banned = true;
+            cmd = { type: 'ban', val: true };
+        } else if (action === 'unban') {
+            userData.banned = false;
+            cmd = { type: 'ban', val: false };
+        }
+
+        // Зберігаємо змінені дані в профілі користувача
+        localStorage.setItem(`user_${id}`, JSON.stringify(userData));
+        
+        // Відправляємо команду в index.html (через localStorage)
+        localStorage.setItem(`admin_cmd_${id}`, JSON.stringify(cmd));
+
+        alert('Дію застосовано! Зміни підтягнуться у гравця при наступному оновленні.');
+        renderUsers();
+    }
+
+    // Початковий рендер
+    renderUsers();
+
+    // Авто-оновлення кожні 5 секунд
+    setInterval(renderUsers, 5000);
+</script>
+
+</body>
+</html>
