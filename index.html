@@ -30,7 +30,6 @@
 
         .container { display: flex; flex-direction: column; height: 100vh; }
 
-        /* Header */
         .header {
             padding: 12px 20px;
             display: flex; align-items: center; justify-content: space-between;
@@ -52,7 +51,6 @@
             margin-top: 2px; display: inline-block;
         }
 
-        /* Score Area */
         .score-section { text-align: center; padding: 20px 0; }
         .score-label { font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
         .score-main { 
@@ -64,13 +62,11 @@
             background: rgba(56, 189, 248, 0.1); padding: 4px 12px; border-radius: 20px;
         }
 
-        /* Content Area */
         .content { flex-grow: 1; overflow-y: auto; padding-bottom: 100px; }
         .tab-content { display: none; padding: 0 20px; animation: slideUp 0.3s ease; }
         .tab-content.active { display: block; }
         @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* Tap Mechanism */
         .tap-box { display: flex; justify-content: center; align-items: center; height: 260px; margin: 10px 0; }
         .tg-coin {
             width: 220px; height: 220px; cursor: pointer;
@@ -79,12 +75,10 @@
         }
         .tg-coin:active { transform: scale(0.95); }
 
-        /* Stats Bar */
         .stats-wrap { background: var(--card-bg); padding: 15px; border-radius: 20px; margin-bottom: 10px; border: 1px solid #2d3748; }
         .progress-container { height: 10px; background: #1e293b; border-radius: 10px; overflow: hidden; margin-top: 8px; }
         .progress-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa); width: 100%; transition: width 0.2s; }
 
-        /* Upgrade Cards */
         .card {
             background: var(--card-bg); padding: 14px; border-radius: 18px;
             display: flex; justify-content: space-between; align-items: center;
@@ -97,7 +91,6 @@
             padding: 10px 12px; border-radius: 10px; font-weight: bold; min-width: 80px;
         }
 
-        /* Admin Styles */
         #admin-auth-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85);
             display: none; flex-direction: column; justify-content: center; align-items: center;
@@ -118,7 +111,6 @@
         .btn-sub { background: var(--red); }
         .btn-set { background: var(--tg-blue); }
 
-        /* Nav Bar */
         .nav {
             position: fixed; bottom: 0; width: 100%; display: flex;
             background: #111827; padding: 10px 0 25px; border-top: 1px solid #1e293b;
@@ -190,7 +182,7 @@
             <div class="card">
                 <div class="card-info">
                     <h4>Auto-Clicker 🤖</h4>
-                    <p id="auto-desc">1 тап - 0с</p>
+                    <p id="auto-desc">Статус: Вимкнено</p>
                     <p>Ціна: <span id="cost-auto">500</span> TG</p>
                 </div>
                 <button class="btn-upgrade" onclick="buy('auto')">Level <span id="lv-auto">0</span></button>
@@ -291,14 +283,14 @@
     }
 
     function load() {
-        const data = localStorage.getItem('star_empire_final');
+        const data = localStorage.getItem('star_empire_final_v5');
         if (data) {
             state = {...state, ...JSON.parse(data)};
             const now = Date.now();
             const diff = Math.floor((now - state.lastTime) / 1000);
             if (state.autoLvl > 0) {
-                const earned = Math.floor(diff / AUTO_INTERVALS[state.autoLvl]);
-                if (earned > 0) state.bal += earned;
+                const totalTaps = Math.floor(diff / AUTO_INTERVALS[state.autoLvl]);
+                if (totalTaps > 0) state.bal += (totalTaps * state.power);
             }
             state.energy = Math.min(state.maxEnergy, state.energy + (diff * (state.regen * 0.5)));
         }
@@ -307,7 +299,7 @@
 
     function save() {
         state.lastTime = Date.now();
-        localStorage.setItem('star_empire_final', JSON.stringify(state));
+        localStorage.setItem('star_empire_final_v5', JSON.stringify(state));
     }
 
     function initUser() {
@@ -333,12 +325,12 @@
         const inc = document.getElementById('p-income-text');
         if (state.autoLvl > 0) {
             inc.style.display = 'block';
-            inc.innerText = `🤖 Авто-клікер: 1 тап — ${AUTO_INTERVALS[state.autoLvl]} сек`;
+            inc.innerText = `🤖 Авто: +${state.power} кажні ${AUTO_INTERVALS[state.autoLvl]}с`;
         } else { inc.style.display = 'none'; }
 
         document.getElementById('lv-auto').innerText = state.autoLvl >= 6 ? 'MAX' : state.autoLvl;
         document.getElementById('cost-auto').innerText = state.autoLvl >= 6 ? '∞' : AUTO_COSTS[state.autoLvl];
-        document.getElementById('auto-desc').innerText = state.autoLvl === 0 ? 'Статус: Вимкнено' : `1 тап кожні ${AUTO_INTERVALS[state.autoLvl]}с`;
+        document.getElementById('auto-desc').innerText = state.autoLvl === 0 ? 'Статус: Вимкнено' : `Дає +${state.power} кожні ${AUTO_INTERVALS[state.autoLvl]}с`;
         document.getElementById('cost-tap').innerText = state.costs.tap;
         document.getElementById('cost-energy').innerText = state.costs.energy;
         document.getElementById('cost-regen').innerText = state.costs.regen;
@@ -362,14 +354,13 @@
     }
 
     function checkAdminPass() {
-        const pass = document.getElementById('admin-pass').value;
-        if (pass === 'admin') {
+        if (document.getElementById('admin-pass').value === 'admin') {
             document.getElementById('admin-panel').style.display = 'block';
             tg.HapticFeedback.notificationOccurred('success');
             closeAdminAuth();
         } else {
             tg.HapticFeedback.notificationOccurred('error');
-            alert('Невірний код!');
+            alert('Помилка!');
         }
     }
 
@@ -429,7 +420,10 @@
     }
 
     setInterval(() => {
-        if (state.autoLvl > 0) state.bal += (1 / (AUTO_INTERVALS[state.autoLvl] * 10));
+        if (state.autoLvl > 0) {
+            // Додаємо силу тапу (state.power) відповідно до інтервалу
+            state.bal += (state.power / (AUTO_INTERVALS[state.autoLvl] * 10));
+        }
         if (state.energy < state.maxEnergy) state.energy = Math.min(state.maxEnergy, state.energy + (state.regen / 20));
         updateUI();
     }, 100);
@@ -439,4 +433,4 @@
     updateUI();
 </script>
 </body>
-</html>```
+</html>
