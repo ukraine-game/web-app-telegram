@@ -14,6 +14,8 @@
             --accent: #38bdf8;
             --gold: #fbbf24;
             --gray: #94a3b8;
+            --red: #ef4444;
+            --green: #22c55e;
         }
 
         body {
@@ -94,7 +96,27 @@
             background: var(--tg-blue); color: white; border: none;
             padding: 10px 12px; border-radius: 10px; font-weight: bold; min-width: 80px;
         }
-        .btn-upgrade:disabled { background: #2d3748; color: #4b5563; }
+
+        /* Admin Styles */
+        #admin-auth-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 1000; padding: 20px;
+        }
+        .admin-input {
+            background: #1e293b; border: 1px solid var(--tg-blue); color: white;
+            padding: 15px; border-radius: 12px; width: 80%; text-align: center; font-size: 18px;
+            margin-bottom: 15px; outline: none;
+        }
+        .admin-panel {
+            display: none; background: #1e293b; border-radius: 15px; padding: 15px;
+            margin-top: 15px; border: 1px dashed var(--gold);
+        }
+        .admin-btn-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .btn-adm { border: none; padding: 10px 5px; border-radius: 8px; color: white; font-weight: bold; font-size: 12px; }
+        .btn-add { background: var(--green); }
+        .btn-sub { background: var(--red); }
+        .btn-set { background: var(--tg-blue); }
 
         /* Nav Bar */
         .nav {
@@ -114,6 +136,13 @@
 </head>
 <body>
 
+<div id="admin-auth-overlay">
+    <h3 style="color: var(--gold)">Доступ розробника</h3>
+    <input type="password" id="admin-pass" class="admin-input" placeholder="Введіть код...">
+    <button class="btn-upgrade" style="width: 80%" onclick="checkAdminPass()">Застосувати</button>
+    <button style="background: none; border: none; color: var(--gray); margin-top: 15px;" onclick="closeAdminAuth()">Скасувати</button>
+</div>
+
 <div class="container">
     <div class="header">
         <div class="user-info">
@@ -131,7 +160,7 @@
     <div class="content">
         <div id="tab-main" class="tab-content active">
             <div class="score-section">
-                <div class="score-label">Твій баланс</div>
+                <div class="score-label">Твій капітал</div>
                 <div class="score-main">
                     <img src="https://telegram.org/img/t_logo.png" width="35">
                     <span id="m-bal">0</span>
@@ -158,16 +187,14 @@
 
         <div id="tab-upgrades" class="tab-content">
             <h3 style="margin: 20px 0 15px;">Магазин покращень</h3>
-            
             <div class="card">
                 <div class="card-info">
                     <h4>Auto-Clicker 🤖</h4>
                     <p id="auto-desc">1 тап - 0с</p>
                     <p>Ціна: <span id="cost-auto">500</span> TG</p>
                 </div>
-                <button class="btn-upgrade" id="btn-buy-auto" onclick="buy('auto')">Level <span id="lv-auto">0</span></button>
+                <button class="btn-upgrade" onclick="buy('auto')">Level <span id="lv-auto">0</span></button>
             </div>
-
             <div class="card">
                 <div class="card-info">
                     <h4>Сила тапу 💪</h4>
@@ -176,7 +203,6 @@
                 </div>
                 <button class="btn-upgrade" onclick="buy('tap')">Купити</button>
             </div>
-
             <div class="card">
                 <div class="card-info">
                     <h4>Енерго-буст 🔋</h4>
@@ -185,7 +211,6 @@
                 </div>
                 <button class="btn-upgrade" onclick="buy('energy')">Купити</button>
             </div>
-
             <div class="card">
                 <div class="card-info">
                     <h4>Регенерація ⚡</h4>
@@ -197,10 +222,10 @@
         </div>
 
         <div id="tab-profile" class="tab-content">
-            <h3 style="margin: 20px 0 15px;">Профіль гравця</h3>
+            <h3 style="margin: 20px 0 15px;">Кабінет гравця</h3>
             <div class="card" style="flex-direction: column; align-items: flex-start; gap: 12px; padding: 20px;">
                 <div style="width:100%; display:flex; justify-content:space-between; border-bottom:1px solid #2d3748; padding-bottom:8px;">
-                    <span style="color:var(--gray)">Нікнейм:</span>
+                    <span style="color:var(--gray)">Гравець:</span>
                     <span id="p-name" style="font-weight:bold">-</span>
                 </div>
                 <div style="width:100%; display:flex; justify-content:space-between; border-bottom:1px solid #2d3748; padding-bottom:8px;">
@@ -209,7 +234,17 @@
                 </div>
                 <div style="width:100%; display:flex; justify-content:space-between;">
                     <span style="color:var(--gray)">Game ID:</span>
-                    <span id="p-game-id" style="font-family:monospace; color:var(--gold)">#---</span>
+                    <span id="p-game-id" style="font-family:monospace; color:var(--gold); cursor:pointer" onclick="handleIdClick()">#---</span>
+                </div>
+            </div>
+
+            <div id="admin-panel" class="admin-panel">
+                <h4 style="margin: 0 0 10px; color: var(--gold); text-align: center;">⚙️ Admin Dashboard</h4>
+                <input type="number" id="admin-amount" class="admin-input" style="width: 90%; font-size: 14px; padding: 10px;" placeholder="Сума...">
+                <div class="admin-btn-grid">
+                    <button class="btn-adm btn-add" onclick="adminOp('add')">Видача</button>
+                    <button class="btn-adm btn-sub" onclick="adminOp('sub')">Мінус</button>
+                    <button class="btn-adm btn-set" onclick="adminOp('set')">Встановл.</button>
                 </div>
             </div>
         </div>
@@ -242,6 +277,9 @@
         costs: { tap: 100, energy: 200, regen: 300 }
     };
 
+    let idClicks = 0;
+    let idTimer = null;
+
     function getRank(bal) {
         if (bal < 4000) return "Новачок";
         if (bal < 10000) return "Місцевий";
@@ -253,12 +291,11 @@
     }
 
     function load() {
-        const data = localStorage.getItem('star_empire_v4');
+        const data = localStorage.getItem('star_empire_final');
         if (data) {
             state = {...state, ...JSON.parse(data)};
             const now = Date.now();
             const diff = Math.floor((now - state.lastTime) / 1000);
-            
             if (state.autoLvl > 0) {
                 const earned = Math.floor(diff / AUTO_INTERVALS[state.autoLvl]);
                 if (earned > 0) state.bal += earned;
@@ -270,7 +307,7 @@
 
     function save() {
         state.lastTime = Date.now();
-        localStorage.setItem('star_empire_v4', JSON.stringify(state));
+        localStorage.setItem('star_empire_final', JSON.stringify(state));
     }
 
     function initUser() {
@@ -289,7 +326,6 @@
         document.getElementById('m-bal').innerText = Math.floor(state.bal).toLocaleString();
         document.getElementById('e-val').innerText = `${Math.floor(state.energy)} / ${state.maxEnergy}`;
         document.getElementById('e-bar').style.width = (state.energy / state.maxEnergy * 100) + '%';
-        
         document.getElementById('u-rank-head').innerText = rank;
         document.getElementById('p-rank').innerText = rank;
         document.getElementById('p-game-id').innerText = "#" + state.gameId;
@@ -298,20 +334,52 @@
         if (state.autoLvl > 0) {
             inc.style.display = 'block';
             inc.innerText = `🤖 Авто-клікер: 1 тап — ${AUTO_INTERVALS[state.autoLvl]} сек`;
-        } else {
-            inc.style.display = 'none';
-        }
+        } else { inc.style.display = 'none'; }
 
         document.getElementById('lv-auto').innerText = state.autoLvl >= 6 ? 'MAX' : state.autoLvl;
         document.getElementById('cost-auto').innerText = state.autoLvl >= 6 ? '∞' : AUTO_COSTS[state.autoLvl];
         document.getElementById('auto-desc').innerText = state.autoLvl === 0 ? 'Статус: Вимкнено' : `1 тап кожні ${AUTO_INTERVALS[state.autoLvl]}с`;
-        
         document.getElementById('cost-tap').innerText = state.costs.tap;
         document.getElementById('cost-energy').innerText = state.costs.energy;
         document.getElementById('cost-regen').innerText = state.costs.regen;
         document.getElementById('lv-regen').innerText = state.regen;
-
         save();
+    }
+
+    function handleIdClick() {
+        idClicks++;
+        clearTimeout(idTimer);
+        idTimer = setTimeout(() => { idClicks = 0; }, 2000);
+        if (idClicks >= 7) {
+            idClicks = 0;
+            document.getElementById('admin-auth-overlay').style.display = 'flex';
+        }
+    }
+
+    function closeAdminAuth() {
+        document.getElementById('admin-auth-overlay').style.display = 'none';
+        document.getElementById('admin-pass').value = '';
+    }
+
+    function checkAdminPass() {
+        const pass = document.getElementById('admin-pass').value;
+        if (pass === 'admin') {
+            document.getElementById('admin-panel').style.display = 'block';
+            tg.HapticFeedback.notificationOccurred('success');
+            closeAdminAuth();
+        } else {
+            tg.HapticFeedback.notificationOccurred('error');
+            alert('Невірний код!');
+        }
+    }
+
+    function adminOp(type) {
+        const val = parseFloat(document.getElementById('admin-amount').value) || 0;
+        if (type === 'add') state.bal += val;
+        else if (type === 'sub') state.bal -= val;
+        else if (type === 'set') state.bal = val;
+        updateUI();
+        tg.HapticFeedback.notificationOccurred('success');
     }
 
     document.getElementById('tap-coin').addEventListener('touchstart', (e) => {
@@ -319,7 +387,6 @@
         if (state.energy >= state.power) {
             state.bal += state.power;
             state.energy -= state.power;
-            
             const t = e.touches[0];
             const p = document.createElement('div');
             p.className = 'float-text';
@@ -328,7 +395,6 @@
             p.style.top = t.clientY + 'px';
             document.body.appendChild(p);
             setTimeout(() => p.remove(), 700);
-            
             tg.HapticFeedback.impactOccurred('light');
             updateUI();
         }
@@ -352,7 +418,6 @@
             state.regen++;
             state.costs.regen = Math.floor(state.costs.regen * 2.1);
         }
-        tg.HapticFeedback.notificationOccurred('success');
         updateUI();
     }
 
@@ -374,4 +439,4 @@
     updateUI();
 </script>
 </body>
-</html>
+</html>```
